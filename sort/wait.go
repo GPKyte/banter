@@ -1,4 +1,4 @@
-package sandbox
+package sort // import "github.com/GPKyte/banter/sort"
 
 import (
 	"fmt"
@@ -41,4 +41,3 @@ func WaitSort(this *NumbCollection) *NumbCollection {
 
 	return this
 }
-
