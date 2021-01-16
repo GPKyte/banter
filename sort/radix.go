@@ -429,5 +429,80 @@ func ConcurrentRadixSort(group *RadixCollection) *RadixCollection {
 	// It appears we can do this easily with knowledge of where the start index of the preceeding attribute is,
 	//		unfortunately, this is only feasible right now for a maximum of two-attributes, more becomes uncertain.
 
+	// A solution to the above is to flow through the structure looking for group membership within each value bucket
+	// We define a listener function which under the base case of recursion send along a shared channel the next value in order
+	// Once the first and remaining attributes of the list are sorted, Primary, secondary, etc. sorting attributes, we then iterate over the lists in order
+	// The arguments to the listener function are the indices which must be matched in each ordered key group until the base case
+
+	var orderedIndices = make([]int, len(group)) // not going to append, but direct assign instead. Init to 0 everywhere
+	var sortByMinKey = func(outsideIteration chan int, forThese []int, attributeOrdinal int, predictedIndex int) {
+		// Check base cases here
+		if len(forThese) == 0 {
+			panic("Why is this list empty?")
+		}
+		else if len(forThese) == 1 {
+			send(forThese[0])
+		}
+		if len(forThese) > 1 && attributeOrdinal + 1 == len(iterationsOfIndicesOrderedByAttribute) { 
+			for _, each := forThese {
+				send(each)
+			}
+		}
+
+		// convert to lookup table for convenience, and provide a method for using it
+		var lookoutFor = map[int]bool
+		for _, this := range forThese {
+			lookoutFor[this] = true
+		}
+		// This is an endless loop if the channel isn't closed...
+		var filter() int {
+			for this, ok := <-outsideIteration && ok {
+				if lookoutFor[this] {
+					return this
+				}
+			}
+			return 0
+		}
+
+		// outsideIteration and decide that whenever the value changes, the group must as well
+		var toThis int = filter()
+		var value interface{} = getAttribute(ordinal, (*group)[toThis])
+		var nextGroup []int{toThis}
+
+		for toThis := filter() /* This loop condition is not complete */ {
+			if getAttribute(ordinal, (*group)[toThis]) == value {
+				nextGroup = append(nextGroup, toThis)
+			} else {
+				sortByMinKey(outsideIteration, nextGroup, attributeOrdinal+1, predictedIndex+len(nextGroup))
+				nextGroup = make([]int, 0)
+				value = getAttribute(ordinal, (*group)[toThis])
+			}
+		}
+
+		// Once channel closes or forThese is emptied, quit
+		return
+	}
+
+	var count {}
+	var send() {
+		count++
+	}
+	// Now initiate a set of recusive calls at level one, why do I feel that we need multiple channels..?
+	var iterateToCommunicate chan int
+	sortByMinKey(iterateToCommunicate, iterationsOfIndicesOrderedByAttribute[0], 0, 0)
+
+	// Finally iterate over our structure until all the indices have been sorted
+	for ordinal, attribute := range iterationsOfIndicesOrderedByAttribute {
+
+		for index, ogIndex := range attribute {
+			iterateToCommunicate <- ogIndex
+		}
+	}
+
+	var mapByIndicesIntoSortedOrder = func(indices []int) {
+		for unsorted, sorted := range indices {
+			groupInOrder[sorted] = (*group)[unsorted]
+		}
+	}
 	return groupInOrder
 }
