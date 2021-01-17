@@ -300,37 +300,48 @@ type RadixCollection []RadixSortable
 // ConcurrentRadixSort Leverages a hypothetical principle of retained sort order and allows thread safe execution of a by-attribute based sort
 func ConcurrentRadixSort(group *RadixCollection) *RadixCollection {
 	// Radix Sort leverages a fundamental principle of sorting; order is retained in places of ambiguity
-	// Radix Sort works just as well with digits as characters as attributes
-	// The worst part about radix is the #number of rounds; this # can be reduced by increasing the base of the system used
-	// i.e. group three decimals together and have a 1000 corresponding bins
-	// A single-round radix sort is bad for space, perhaps, but not in every case and is O(n) sorting everytime
-	// The most common implementations of Radix Sort are Least and Most Significant Digit ordered (LSD, MSD respectively)
-	// In this-speak, these take every attribute of a number or string and sort the collection of N elements R times := #Rounds
-	// Giving a Runtime of O(RN), we cannot reduce N, so we reduce R.
-	// Traditional Radix sorts the collection inbetween every round and may use something efficient like Key-Count Sort in place
-	// This has some redundancy and does not leverage concurrency as each step is linked sequentially to the last
-	// My alternative here uses a single data structure which can be updated be separate processes at the same time safely
-	// The structure is grouped by attribute such as the Nth digit of a number or the category of a MongoDB document
-	// Nil, null, None, "", _, and other such values for an attribute are acceptable and treated with priority.
+	// A stable sort maintains this retained ordering, whereas unstable quicksort for instance would alter the zone of ambiguous ordering among AA AA and AA
+	// Radix Sort works just as well with digits as characters as attributes of any entity with ordinal categorical data or enumerated ordinal components 
+	// Nil, null, None, "", _, and other such values for an attribute are acceptable and treated with descending priority
 	// i.e. apple before applebees and 5 before 10
-	// It is interesting to note strategies of reducing the rounds in the process of sorting a collection
-	// One such way is to increase the base system of the number in question from binary or decimal to hex or even greater.
-	// Just like the concatenation principle mentioned above, this simply increases the number of "buckets" which to sort into
-	// And the greater the available memory and the smaller the range of numbers, the better the value of R in our favor
-	// Returning to the strategy for concurrent radix sorting,
-	// The byAttribute or byRound datastructure maintains one thing; the sortedByAttribute indices of the elements in the original collection
-	// It is no great work to demonstrate how this structure can be filled by concurrent execution of Key-Count sort over each attribute
-	// But it is unclear on the surface whether the order of these individual sorts can be applied across N attributes
+	//
+	// The most common implementations of Radix Sort are Least and Most Significant Digit ordered (LSD, MSD respectively)
+	// These take every attribute of a number or string and sort the collection of N elements #Rounds times
+	//
+	// Given a Runtime of O(#Rounds * N), where we cannot reduce N, we instead reduce #Rounds to see quick gains in performance at the cost of probably available space.
+	// The worst part about radix is the #number of rounds. So, it is interesting to discuss relevant ways of reducing the rounds needed to sort any collection.
+	// By far the most intuitive, or at least a simple approach is to increase the quantity of bins to decrease the #Rounds
+	// For example by increasing the base system from a decimal system with 10 bins to a base with 16, 64, or 1000 bins instead
+	// Such as hexadecimal, base64, or concatenating multiple characters/digits as a bin up to the point of reasonable space complexity.
+	// What capacity can/should a bin have? is a relevant question to ask
+	// Note: bins can be discovered prior to knowledge by guessing A*ll possibilities, or one can use just what's actually there instead.
+	// The approach below aligns better with the latter method.
+	// The second worst part of radix is the space-complexity. I offer no solace here
+	//
+	// There is a special case of RadixSort with just a single round. This is O(N) and results from the scenario where 1 >= log_Bins(N)
+	// Generally the greater the available memory (and thus possible bins) and the smaller the range of numbers, the better the value of R in our favor
+	//
+	// Traditional Radix sorts the collection inbetween every round and may use something efficient like Key-Count Sort in place
+	// This has some redundancy and does not leverage concurrency because each step is linked sequentially to the last.
+	// Here I propose that we stand to gain performance from pre-sorted indices, concurrent, parallel, and lazy execution patterns
+	// The trick? First, rather than order the elements, sort their original indices or say UIDs at every attribute level.
+	// Second, keep in the metadata where bins begin and end, I simplify this by using maps in place of arrays at the price of space but boon of simplicity
+	// My alternative here uses a single data structure which can be updated be separate processes at the same time safely
+	//
+	// The byRoundThenAttributeBins datastructure maintains one thing; the sortedByAttribute indices of the elements from the original collection
+	// It is no great work to demonstrate how this structure can be filled by concurrent routines directed in the proper area
+	// Until recently, it has been unclear whether these individual index sorts can be combined to form the desired sort pattern
 	// For instance, a successful N attribute Radix Sort applies the ordering of attributes
-	//		_ -> A -> B -> ... -> N where A is primary, such as the MSD
+	//					_ -> A -> B -> ... -> N where A is primary, such as the MSD
 	// But if not applied cleverly, the concurrent radix sort final step to be disclosed could apply the original ordering _, between each attribute
 	// Resulting in		_ -> A -> _ -> B -> _ -> ... -> _ -> N
 	// Or more simply	_ -> N
-	// The theory behind this distinction is unclear to me, so we rely on practice to confirm or deny the reality of the following implementation
-	// In order to sidestep the _ order, we rely on a careful and sadly, a sequential appendage of the elements back into a same-size collection
-	// Which is returned at the completion of this function
+	//
+	// The theory behind this distinction is unclear to me, so we rely on our testsuite to confirm or deny the correctness of the following implementation
+	// In order to sidestep the _ order, we rely on a sequential iteration through each attributes bins and some inspiration from Key-Count sort
 
-	// Want a concise way to prep a 2D slice inline, this implementation benefits us with spatial locality
+	// Begin the preparation
+	// prepareForN is a concise method to prepare a 2D slice inline later on, this particular implementation benefits us with spatial locality
 	var prepareForN = func(rounds int) [][]int {
 		var oneBigContinguousSlice = make([]int, len(*group)*rounds)
 		var preparation [][]int
@@ -345,7 +356,7 @@ func ConcurrentRadixSort(group *RadixCollection) *RadixCollection {
 		return preparation
 	}
 
-	// Exactly what you think it does, but better suited for clean code
+	// trackMinAndMax doe *Exactly* what you think it does, but is suited for clean code
 	var trackMinAndMax = func(any int, min, max *int) {
 		if any > *max {
 			*max = any
