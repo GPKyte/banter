@@ -418,33 +418,63 @@ func ConcurrentRadixSort(group *RadixCollection) *RadixCollection {
 		go keyCountSort(r, &iterationsOfIndicesOrderedByAttribute[r])
 	}
 
-	// Once all of that is complete... Sync possibly needed... The fun begins
-	// We gonna write this part for two attributes and generalize later
-	// Idea is to iterate through the meta data of each round and ":filter" through each
-	// Finding a corresponding index in every round and only adding it to the final groupInOrder
-	// After passing through all the rounds. I am unsure of whether this can be done for more than 2 rounds
-	// And don't yet know how to implement for 2 rounds, but can do this by hand for a deck of cards using suite and ordinal index as the attributes
-	// Thinking of going to round(0).attributeKey(0) and grabbing all the indices there, then iterating over the next round(1)
-	// Then whenever a match is found in round(1), writing that immediately to the next stage
-	// Noticed that the placement of the index can happen in the same fashion KeyCountSort places elements exactly where they need to be
-	// But while this reducing redundant loops over round's slice, I suspect this strategy will raise issues of complexity or limitation after N>2 rounds
-	// If not, it may need intermittent decision-making over the index of some items. Can this be achieved?
-	// In the end, the result is a series of indices into the original group.
-	// To put the elements in a new groupInOrder, take the element at the group[index iterated upon], and place it simply at the end of the new groupInOrder.
-	// Voila! ConcurrentRadixSort
-
-	// Other notes...
-	// It appears we could "brute force" this structure, but that does not do the finesse of Radix justice.
 	// It appears we can find a minimum key reminiscent of the MSD strategy
-	// It appears we could track additional meta data during our keysort which would allow instant locating of the same index in other "columns", i.e. rounds
-	// It appears we can do this easily with knowledge of where the start index of the preceeding attribute is,
-	//		unfortunately, this is only feasible right now for a maximum of two-attributes, more becomes uncertain.
+	// It appears we can do this easily if only with knowledge of where the start index of the preceeding attribute is,
 
-	// A solution to the above is to flow through the structure looking for group membership within each value bucket
+	// A solution to the above is to flow through the structure looking for group membership within each value bin
 	// We define a listener function which under the base case of recursion send along a shared channel the next value in order
 	// Once the first and remaining attributes of the list are sorted, Primary, secondary, etc. sorting attributes, we then iterate over the lists in order
 	// The arguments to the listener function are the indices which must be matched in each ordered key group until the base case
+	////////////////////////////////////////////////////////////////////////////////////////////
+	type radixMachine struct {
+		rounds []attributeBinSet
+	}
+	type attributeBinSet struct {
+		bins map[interface{}][]int
+	}
 
+	func (abs attributeBinSet) Keys() []OrderedKey {
+		// Support must be added here for every interface accepted as a key to attributeBinSet
+		// So far this includes integers and strings, but check must be done at run time, so be warned
+		var orderedKeys = []OrderedKey{}
+		var stdLess = func(other OrderedKey) {
+
+		}
+
+		for binKey := range abs.bins {
+			// Transform binKey into an OrderedKey
+			switch binKey.(type) {
+			case: string
+				binKey.Less = 
+			case: int
+				binKey.Less = 
+			}
+
+			orderedKeys = append(orderedKeys, )
+		}
+
+		// Sort the ordered keys...
+		orderedKeys = InsertionSort(&orderedKeys)
+
+	}
+
+	type OrderedMap interface {
+		Keys() []OrderedKey
+	}
+
+	// OrderedKey is applicable to anything with ordinal value
+	type OrderedKey interface {
+		ToInt() int
+	}
+	
+	var order = iterationsOfIndicesOrderedByAttribute.Round(0)
+	for r := 1; r<rounds; r++ {
+		var abs = iterationsOfIndicesOrderedByAttribute.Round(r)
+		order = abs.Index(order)
+	}
+
+	return ???
+	/*///////////////////////////////////////////////////////////////////////////////////////////
 	var orderedIndices = make([]int, len(group)) // not going to append, but direct assign instead. Init to 0 everywhere
 	var sortByMinKey = func(outsideIteration chan int, forThese []int, attributeOrdinal int, predictedIndex int) {
 		// Check base cases here
@@ -480,7 +510,7 @@ func ConcurrentRadixSort(group *RadixCollection) *RadixCollection {
 		var value interface{} = getAttribute(ordinal, (*group)[toThis])
 		var nextGroup []int{toThis}
 
-		for toThis := filter() /* This loop condition is not complete */ {
+		for toThis := filter() {
 			if getAttribute(ordinal, (*group)[toThis]) == value {
 				nextGroup = append(nextGroup, toThis)
 			} else {
@@ -516,4 +546,6 @@ func ConcurrentRadixSort(group *RadixCollection) *RadixCollection {
 		}
 	}
 	return groupInOrder
+}
+	////////////////////////////////////////////////////////////////////////////////////////////*/
 }
