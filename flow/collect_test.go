@@ -23,7 +23,12 @@ func TestAllOrNothin(t *testing.T) {
 
 	if testSameLength.Len() != testCollection.Len() {
 		t.Logf("Expected all, but got %d out of %d", testSameLength.Len(), testCollection.Len())
-	} else if testZeroLength.Len() != 0 {
+		t.Log(testSameLength)
+		t.Fail()
+	}
+	if testZeroLength.Len() != 0 {
 		t.Logf("Expected none, but got %d out of %d", testZeroLength.Len(), testCollection.Len())
+		t.Log(testZeroLength)
+		t.Fail()
 	}
 }
