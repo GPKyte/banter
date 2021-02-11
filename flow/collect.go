@@ -30,7 +30,7 @@ func newGenericCollection(ofThese ...[]interface{}) GenericCollection {
 		}
 	}
 
-	return GenericCollection{collection}
+	return GenericCollection(collection)
 }
 
 // Select of the matching collectable will be returned in one Collection
@@ -56,7 +56,7 @@ func ImmutableMapReduce(mrfun FilterFunc, c Collection) Collection {
 		}
 	}
 
-	return GenericCollection{buffer}
+	return newGenericCollection(buffer)
 }
 
 // GenericCollection is a simple working example
