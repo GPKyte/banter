@@ -12,18 +12,18 @@ type numCollection []int // Implements flow.Collection
 func (nc numCollection) Len() int {
 	return len(nc)
 }
-func (nc numCollection) Get(this int) {
+func (nc numCollection) Get(this int) interface{} {
 	return nc[this]
 }
 
 func TestAllOrNothin(t *testing.T) {
-	var testCollection = numCollection(integerSet)
+	var testCollection = flow.Collection(numCollection(integerSet))
 	var testSameLength = flow.Select(testCollection)(flow.All)
 	var testZeroLength = flow.Select(testCollection)(flow.None)
 
-	if len(testSameLength) != len(testCollection) {
-		t.Logf("Expected all, but got %d out of %d", len(testSameLength), len(testCollection))
-	} else if len(testZeroLength) != 0 {
-		t.Logf("Expected none, but got %d out of %d", len(testZeroLength), len(testCollection))
+	if testSameLength.Len() != testCollection.Len() {
+		t.Logf("Expected all, but got %d out of %d", testSameLength.Len(), testCollection.Len())
+	} else if testZeroLength.Len() != 0 {
+		t.Logf("Expected none, but got %d out of %d", testZeroLength.Len(), testCollection.Len())
 	}
 }
