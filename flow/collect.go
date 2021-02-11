@@ -25,7 +25,7 @@ func newGenericCollection(ofThese ...[]interface{}) GenericCollection {
 
 	var collection = make([]interface{}, 0, cap)
 	for _, each := range ofThese {
-		for eachCollectable := range each {
+		for _, eachCollectable := range each {
 			collection = append(collection, eachCollectable)
 		}
 	}
