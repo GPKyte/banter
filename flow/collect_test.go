@@ -31,4 +31,8 @@ func TestAllOrNothin(t *testing.T) {
 		t.Log(testZeroLength)
 		t.Fail()
 	}
+	if t.Failed() {
+		t.Log("The following flow.Collection was used in both tests:")
+		t.Log(testCollection)
+	}
 }
