@@ -301,7 +301,7 @@ type RadixCollection []RadixSortable
 func ConcurrentRadixSort(group *RadixCollection) *RadixCollection {
 	// Radix Sort leverages a fundamental principle of sorting; order is retained in places of ambiguity
 	// A stable sort maintains this retained ordering, whereas unstable quicksort for instance would alter the zone of ambiguous ordering among AA AA and AA
-	// Radix Sort works just as well with digits as characters as attributes of any entity with ordinal categorical data or enumerated ordinal components 
+	// Radix Sort works just as well with digits as characters as attributes of any entity with ordinal categorical data or enumerated ordinal components
 	// Nil, null, None, "", _, and other such values for an attribute are acceptable and treated with descending priority
 	// i.e. apple before applebees and 5 before 10
 	//
@@ -367,6 +367,14 @@ func ConcurrentRadixSort(group *RadixCollection) *RadixCollection {
 
 	// A better named function wrapping an existing API
 	var getAttribute = func(precedence int, fromThis RadixSortable) int {
+		// But how will we handle strings? We know not everything can map to an int
+		// How about timestamps? How about X Y Z things we don't have control over?
+		// The answer: Don't worry about it! We have to rewrite this all anyway to accomodate that
+		// Do the thing, then do it again. Right now, we map to int, later we allow dialectical sorting
+		// enumerated by existing libraries detailing languages specifications globally
+		// We can allow comparative sorting of key components if it comes down to it, but that's out of scope
+		// Just do the thing.
+
 		return int(fromThis.Level(precedence).(int))
 	}
 
@@ -420,132 +428,19 @@ func ConcurrentRadixSort(group *RadixCollection) *RadixCollection {
 
 	// It appears we can find a minimum key reminiscent of the MSD strategy
 	// It appears we can do this easily if only with knowledge of where the start index of the preceeding attribute is,
+	// The strategy is to group the indices by their ambiguous shared ordinal traits
+	// Meaning, in the case of a half deck of playing cards, group the cards first by suit
+	// Giving us what I call ranges, depending on your perspective, 0-11 spade, 11-15 heart, 15-22 club, 22-26 diamond
+	// Next, where there is any range with ambiguity of ordering, i.e. more than one in the range
+	// Split it into smaller ranges based on the next attribute
+	// For instance, the playing cards have both a number and a suite as their "only" traits in this example
+	// Be mindful that the attributes are ordered during the keysorting
+	// So take(0-11) and find it has 11 distinct numbers
+	// We then have 0-1 1-2 2-3 3-4 ... 10-11 each range holding one element
+	// Not very efficient I think!
+	// Oh well, a better method will arise
+	// Repeat for each of the other ranges recursively until either range is of size one or the last attribute is processed
+	// Meaning the ambigous elements are in fact equal
 
-	// A solution to the above is to flow through the structure looking for group membership within each value bin
-	// We define a listener function which under the base case of recursion send along a shared channel the next value in order
-	// Once the first and remaining attributes of the list are sorted, Primary, secondary, etc. sorting attributes, we then iterate over the lists in order
-	// The arguments to the listener function are the indices which must be matched in each ordered key group until the base case
-	////////////////////////////////////////////////////////////////////////////////////////////
-	type radixMachine struct {
-		rounds []attributeBinSet
-	}
-	type attributeBinSet struct {
-		bins map[interface{}][]int
-	}
-
-	func (abs attributeBinSet) Keys() []OrderedKey {
-		// Support must be added here for every interface accepted as a key to attributeBinSet
-		// So far this includes integers and strings, but check must be done at run time, so be warned
-		var orderedKeys = []OrderedKey{}
-		var stdLess = func(other OrderedKey) {
-
-		}
-
-		for binKey := range abs.bins {
-			// Transform binKey into an OrderedKey
-			switch binKey.(type) {
-			case: string
-				binKey.Less = 
-			case: int
-				binKey.Less = 
-			}
-
-			orderedKeys = append(orderedKeys, )
-		}
-
-		// Sort the ordered keys...
-		orderedKeys = InsertionSort(&orderedKeys)
-
-	}
-
-	type OrderedMap interface {
-		Keys() []OrderedKey
-	}
-
-	// OrderedKey is applicable to anything with ordinal value
-	type OrderedKey interface {
-		ToInt() int
-	}
-	
-	var order = iterationsOfIndicesOrderedByAttribute.Round(0)
-	for r := 1; r<rounds; r++ {
-		var abs = iterationsOfIndicesOrderedByAttribute.Round(r)
-		order = abs.Index(order)
-	}
-
-	return ???
-	/*///////////////////////////////////////////////////////////////////////////////////////////
-	var orderedIndices = make([]int, len(group)) // not going to append, but direct assign instead. Init to 0 everywhere
-	var sortByMinKey = func(outsideIteration chan int, forThese []int, attributeOrdinal int, predictedIndex int) {
-		// Check base cases here
-		if len(forThese) == 0 {
-			panic("Why is this list empty?")
-		}
-		else if len(forThese) == 1 {
-			send(forThese[0])
-		}
-		if len(forThese) > 1 && attributeOrdinal + 1 == len(iterationsOfIndicesOrderedByAttribute) { 
-			for _, each := forThese {
-				send(each)
-			}
-		}
-
-		// convert to lookup table for convenience, and provide a method for using it
-		var lookoutFor = map[int]bool
-		for _, this := range forThese {
-			lookoutFor[this] = true
-		}
-		// This is an endless loop if the channel isn't closed...
-		var filter() int {
-			for this, ok := <-outsideIteration && ok {
-				if lookoutFor[this] {
-					return this
-				}
-			}
-			return 0
-		}
-
-		// outsideIteration and decide that whenever the value changes, the group must as well
-		var toThis int = filter()
-		var value interface{} = getAttribute(ordinal, (*group)[toThis])
-		var nextGroup []int{toThis}
-
-		for toThis := filter() {
-			if getAttribute(ordinal, (*group)[toThis]) == value {
-				nextGroup = append(nextGroup, toThis)
-			} else {
-				sortByMinKey(outsideIteration, nextGroup, attributeOrdinal+1, predictedIndex+len(nextGroup))
-				nextGroup = make([]int, 0)
-				value = getAttribute(ordinal, (*group)[toThis])
-			}
-		}
-
-		// Once channel closes or forThese is emptied, quit
-		return
-	}
-
-	var count {}
-	var send() {
-		count++
-	}
-	// Now initiate a set of recusive calls at level one, why do I feel that we need multiple channels..?
-	var iterateToCommunicate chan int
-	sortByMinKey(iterateToCommunicate, iterationsOfIndicesOrderedByAttribute[0], 0, 0)
-
-	// Finally iterate over our structure until all the indices have been sorted
-	for ordinal, attribute := range iterationsOfIndicesOrderedByAttribute {
-
-		for index, ogIndex := range attribute {
-			iterateToCommunicate <- ogIndex
-		}
-	}
-
-	var mapByIndicesIntoSortedOrder = func(indices []int) {
-		for unsorted, sorted := range indices {
-			groupInOrder[sorted] = (*group)[unsorted]
-		}
-	}
-	return groupInOrder
-}
-	////////////////////////////////////////////////////////////////////////////////////////////*/
+	// Why go through all of this anyway? Because of where this line of thinking may lead us.
 }
