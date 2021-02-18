@@ -94,22 +94,22 @@ type simpleSync struct {
 	postponed []*int
 }
 
-func (ss simpleSync) incrementLater(please *int) {
+func (ss *simpleSync) incrementLater(please *int) {
 	ss.postponed = append(ss.postponed, please)
 }
 
-func (ss simpleSync) laterIsNow() {
+func (ss *simpleSync) laterIsNow() {
 	for _, each := range ss.postponed {
 		(*each)++
 	}
 	ss.postponed = make([]*int, 0)
 }
 
-func initIncSync() simpleSync {
+func initIncSync() *simpleSync {
 	var pp = make([]*int, 0)
 	var ss = simpleSync{postponed: pp}
 
-	return ss
+	return &ss
 }
 
 // ExampleSyncIncrement demonstrates the difference between incrementing a shared Key immediately and after waiting
