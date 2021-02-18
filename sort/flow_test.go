@@ -18,3 +18,10 @@ func TestRangeExtendOnce(t *testing.T) {
 	var xRangeExtended = xob.ExpandIndexRangesOf(exampleRanges)
 	t.Log(xRangeExtended)
 }
+
+func TestIncrementStrategy(t *testing.T) {
+	var offsets = []int{0, 5, 9, 16}
+
+	with, without := sort.ExampleSyncIncrement(offsets)
+	t.Logf("\nWith: %v\nWithout: %v", with, without)
+}
