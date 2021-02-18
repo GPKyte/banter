@@ -43,6 +43,7 @@ func flowHelper(chan struct{ data, place int }, []int) {
 
 }
 
+// ExpandIndexRangesOf allThese intoThese which will have more indices and more ranges but the same contents
 func (ob OrderedBins) ExpandIndexRangesOf(allThese map[int][]int) (toThese map[int][]int) {
 	// Build a reverse lookup; given [value] return the reference to a copy of the initial offset given by allThese
 	var reverse map[int]*int // This helps expand the indexed ranges into further indexed subranges whilst maintaining the appropriate offset
