@@ -301,7 +301,7 @@ type RadixCollection []RadixSortable
 func ConcurrentRadixSort(group *RadixCollection) *RadixCollection {
 	// Radix Sort leverages a fundamental principle of sorting; order is retained in places of ambiguity
 	// A stable sort maintains this retained ordering, whereas unstable quicksort for instance would alter the zone of ambiguous ordering among AA AA and AA
-	// Radix Sort works just as well with digits as characters as attributes of any entity with ordinal categorical data or enumerated ordinal components 
+	// Radix Sort works just as well with digits as characters as attributes of any entity with ordinal categorical data or enumerated ordinal components
 	// Nil, null, None, "", _, and other such values for an attribute are acceptable and treated with descending priority
 	// i.e. apple before applebees and 5 before 10
 	//
@@ -367,6 +367,14 @@ func ConcurrentRadixSort(group *RadixCollection) *RadixCollection {
 
 	// A better named function wrapping an existing API
 	var getAttribute = func(precedence int, fromThis RadixSortable) int {
+		// But how will we handle strings? We know not everything can map to an int
+		// How about timestamps? How about X Y Z things we don't have control over?
+		// The answer: Don't worry about it! We have to rewrite this all anyway to accomodate that
+		// Do the thing, then do it again. Right now, we map to int, later we allow dialectical sorting
+		// enumerated by existing libraries detailing languages specifications globally
+		// We can allow comparative sorting of key components if it comes down to it, but that's out of scope
+		// Just do the thing.
+
 		return int(fromThis.Level(precedence).(int))
 	}
 
@@ -418,102 +426,21 @@ func ConcurrentRadixSort(group *RadixCollection) *RadixCollection {
 		go keyCountSort(r, &iterationsOfIndicesOrderedByAttribute[r])
 	}
 
-	// Once all of that is complete... Sync possibly needed... The fun begins
-	// We gonna write this part for two attributes and generalize later
-	// Idea is to iterate through the meta data of each round and ":filter" through each
-	// Finding a corresponding index in every round and only adding it to the final groupInOrder
-	// After passing through all the rounds. I am unsure of whether this can be done for more than 2 rounds
-	// And don't yet know how to implement for 2 rounds, but can do this by hand for a deck of cards using suite and ordinal index as the attributes
-	// Thinking of going to round(0).attributeKey(0) and grabbing all the indices there, then iterating over the next round(1)
-	// Then whenever a match is found in round(1), writing that immediately to the next stage
-	// Noticed that the placement of the index can happen in the same fashion KeyCountSort places elements exactly where they need to be
-	// But while this reducing redundant loops over round's slice, I suspect this strategy will raise issues of complexity or limitation after N>2 rounds
-	// If not, it may need intermittent decision-making over the index of some items. Can this be achieved?
-	// In the end, the result is a series of indices into the original group.
-	// To put the elements in a new groupInOrder, take the element at the group[index iterated upon], and place it simply at the end of the new groupInOrder.
-	// Voila! ConcurrentRadixSort
-
-	// Other notes...
-	// It appears we could "brute force" this structure, but that does not do the finesse of Radix justice.
 	// It appears we can find a minimum key reminiscent of the MSD strategy
-	// It appears we could track additional meta data during our keysort which would allow instant locating of the same index in other "columns", i.e. rounds
-	// It appears we can do this easily with knowledge of where the start index of the preceeding attribute is,
-	//		unfortunately, this is only feasible right now for a maximum of two-attributes, more becomes uncertain.
+	// It appears we can do this easily if only with knowledge of where the start index of the preceeding attribute is,
+	// The strategy is to group the indices by their ambiguous shared ordinal traits
+	// Meaning, in the case of a half deck of playing cards, group the cards first by suit
+	// Giving us what I call ranges, depending on your perspective, 0-11 spade, 11-15 heart, 15-22 club, 22-26 diamond
+	// Next, where there is any range with ambiguity of ordering, i.e. more than one in the range
+	// Split it into smaller ranges based on the next attribute
+	// For instance, the playing cards have both a number and a suite as their "only" traits in this example
+	// Be mindful that the attributes are ordered during the keysorting
+	// So take(0-11) and find it has 11 distinct numbers
+	// We then have 0-1 1-2 2-3 3-4 ... 10-11 each range holding one element
+	// Not very efficient I think!
+	// Oh well, a better method will arise
+	// Repeat for each of the other ranges recursively until either range is of size one or the last attribute is processed
+	// Meaning the ambigous elements are in fact equal
 
-	// A solution to the above is to flow through the structure looking for group membership within each value bucket
-	// We define a listener function which under the base case of recursion send along a shared channel the next value in order
-	// Once the first and remaining attributes of the list are sorted, Primary, secondary, etc. sorting attributes, we then iterate over the lists in order
-	// The arguments to the listener function are the indices which must be matched in each ordered key group until the base case
-
-	var orderedIndices = make([]int, len(group)) // not going to append, but direct assign instead. Init to 0 everywhere
-	var sortByMinKey = func(outsideIteration chan int, forThese []int, attributeOrdinal int, predictedIndex int) {
-		// Check base cases here
-		if len(forThese) == 0 {
-			panic("Why is this list empty?")
-		}
-		else if len(forThese) == 1 {
-			send(forThese[0])
-		}
-		if len(forThese) > 1 && attributeOrdinal + 1 == len(iterationsOfIndicesOrderedByAttribute) { 
-			for _, each := forThese {
-				send(each)
-			}
-		}
-
-		// convert to lookup table for convenience, and provide a method for using it
-		var lookoutFor = map[int]bool
-		for _, this := range forThese {
-			lookoutFor[this] = true
-		}
-		// This is an endless loop if the channel isn't closed...
-		var filter() int {
-			for this, ok := <-outsideIteration && ok {
-				if lookoutFor[this] {
-					return this
-				}
-			}
-			return 0
-		}
-
-		// outsideIteration and decide that whenever the value changes, the group must as well
-		var toThis int = filter()
-		var value interface{} = getAttribute(ordinal, (*group)[toThis])
-		var nextGroup []int{toThis}
-
-		for toThis := filter() /* This loop condition is not complete */ {
-			if getAttribute(ordinal, (*group)[toThis]) == value {
-				nextGroup = append(nextGroup, toThis)
-			} else {
-				sortByMinKey(outsideIteration, nextGroup, attributeOrdinal+1, predictedIndex+len(nextGroup))
-				nextGroup = make([]int, 0)
-				value = getAttribute(ordinal, (*group)[toThis])
-			}
-		}
-
-		// Once channel closes or forThese is emptied, quit
-		return
-	}
-
-	var count {}
-	var send() {
-		count++
-	}
-	// Now initiate a set of recusive calls at level one, why do I feel that we need multiple channels..?
-	var iterateToCommunicate chan int
-	sortByMinKey(iterateToCommunicate, iterationsOfIndicesOrderedByAttribute[0], 0, 0)
-
-	// Finally iterate over our structure until all the indices have been sorted
-	for ordinal, attribute := range iterationsOfIndicesOrderedByAttribute {
-
-		for index, ogIndex := range attribute {
-			iterateToCommunicate <- ogIndex
-		}
-	}
-
-	var mapByIndicesIntoSortedOrder = func(indices []int) {
-		for unsorted, sorted := range indices {
-			groupInOrder[sorted] = (*group)[unsorted]
-		}
-	}
-	return groupInOrder
+	// Why go through all of this anyway? Because of where this line of thinking may lead us.
 }
