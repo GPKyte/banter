@@ -1,14 +1,21 @@
 package sort
 
-// Several types to aid flow sort
+// FlowMachine maintains any useful-for-sorting metadata
 type FlowMachine struct {
 	size int
 	obs  OrderedBinSeries
 }
+
+// OrderedBinSeries puts a name to the construct used to flow sort indices assumed to be sorted by sequentially significant attributes elsewhere
 type OrderedBinSeries []OrderedBins
+
+// OrderedBins get the order from their construction
 type OrderedBins []Bin
+
+// Bin is singularly named for a collection of indices into a collection stored elsewhere
 type Bin []int
 
+// ExampleOrderedBinSeries illustrates an OBS and is used in tests
 var ExampleOrderedBinSeries = OrderedBinSeries{
 	[]Bin{
 		[]int{0, 1, 2, 3, 4},
@@ -46,7 +53,7 @@ func flowHelper(chan struct{ data, place int }, []int) {
 // ExpandIndexRangesOf allThese intoThese which will have more indices and more ranges but the same contents
 func (ob OrderedBins) ExpandIndexRangesOf(allThese map[int][]int) (toThese map[int][]int) {
 	// Build a reverse lookup; given [value] return the reference to a copy of the initial offset given by allThese
-	var reverse map[int]*int // This helps expand the indexed ranges into further indexed subranges whilst maintaining the appropriate offset
+	var reverse = make(map[int]*int) // This helps expand the indexed ranges into further indexed subranges whilst maintaining the appropriate offset
 
 	for relativeIndex, bin := range allThese {
 		var relativeIndexUsedByAddress = int(relativeIndex) // Make a copy
@@ -56,6 +63,7 @@ func (ob OrderedBins) ExpandIndexRangesOf(allThese map[int][]int) (toThese map[i
 		}
 	}
 
+	toThese = make(map[int][]int)
 	// Expand the range into subranges
 	for _, bin := range ob {
 		var sync = initIncSync()
@@ -64,6 +72,9 @@ func (ob OrderedBins) ExpandIndexRangesOf(allThese map[int][]int) (toThese map[i
 		// values in "shared" bin will have different "shared" indices
 		for _, value := range bin {
 			var sharedIndex = reverse[value]
+			if sharedIndex == nil {
+				continue // Skip invalid entries, it's okay to lose stuff for now
+			}
 			var key = *sharedIndex
 
 			sync.incrementLater(sharedIndex)
