@@ -112,6 +112,51 @@ func initIncSync() simpleSync {
 	return ss
 }
 
+// ExampleSyncIncrement demonstrates the difference between incrementing a shared Key immediately and after waiting
+func ExampleSyncIncrement(increasingOffsets []int) (with, without map[int][]int) {
+	// For each example take the offsets as inspiration and form of three, regardless of overlap and undercoverage.
+	// This is an example, remember?
+
+	// Increment a shared key immediately
+	var immediate = make(map[int][]int)
+	for i := range increasingOffsets {
+		key := int(increasingOffsets[i])
+
+		for ii := 1; ii <= 3; ii++ {
+			immediate[key] = []int{ii}
+			key++
+		}
+
+		for ii := 1; ii <= 2; ii++ {
+			immediate[key] = []int{ii}
+			key++
+		}
+	}
+
+	// Increment a shared key after right before moving onto next group
+	var sync = initIncSync()
+	var syncedLater = make(map[int][]int)
+	for i := range increasingOffsets {
+		key := int(increasingOffsets[i])
+
+		for ii := 1; ii <= 3; ii++ {
+			syncedLater[key] = append(syncedLater[key], ii)
+			sync.incrementLater(&key)
+		}
+		sync.laterIsNow() // Here is the big differentiator
+
+		for ii := 1; ii <= 2; ii++ {
+			syncedLater[key] = append(syncedLater[key], ii)
+			sync.incrementLater(&key)
+		}
+		sync.laterIsNow()
+		syncedLater[key] = []int{999}
+
+	}
+
+	return syncedLater, immediate
+}
+
 func ExampleFlow() {
 
 }
