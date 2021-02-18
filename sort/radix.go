@@ -417,8 +417,8 @@ func ConcurrentRadixSort(group *RadixCollection) *RadixCollection {
 	}
 
 	// End of helpful function declarations. Begin CRS Logix
-	var rounds int = 2                    // = max length of sortables provided, more the merrier, but less is faster and we're stuck on two...; more accurate to findMax([]RadixSortable).Len()
-	var groupInOrder = &RadixCollection{} // make([]RadixSortable, 0, len(group))
+	var rounds int = 2 // = max length of sortables provided, more the merrier, but less is faster and we're stuck on two...; more accurate to findMax([]RadixSortable).Len()
+	// var groupInOrder = &RadixCollection{} // make([]RadixSortable, 0, len(group))
 	var iterationsOfIndicesOrderedByAttribute = prepareForN(rounds)
 
 	// Go collect the meta data at every level of attribute
@@ -443,4 +443,5 @@ func ConcurrentRadixSort(group *RadixCollection) *RadixCollection {
 	// Meaning the ambigous elements are in fact equal
 
 	// Why go through all of this anyway? Because of where this line of thinking may lead us.
+	return group
 }
