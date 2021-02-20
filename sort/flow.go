@@ -1,5 +1,12 @@
 package sort
 
+import (
+	"fmt"
+)
+
+// Open question about interfaces: What method could we use to overlap the datastructure of bins to something more under-the-hood clever better for mocks?
+// When to and not to create an interface. Perhaps after, but preferably before. I explain that after a concrete implentation is found, one can create an interface to wrap it, but any code written would need updated unless the interface explicity matched the original methods or the whole thing became deprecated with a new call provided for the up to date version. Prototyping is an alternative to In advance interfacing.
+
 // FlowMachine maintains any useful-for-sorting metadata
 type FlowMachine struct {
 	size int
@@ -17,17 +24,17 @@ type Bin []int
 
 // ExampleOrderedBinSeries illustrates an OBS and is used in tests
 var ExampleOrderedBinSeries = OrderedBinSeries{
-	[]Bin{
+	[]Bin{ // Input
 		[]int{0, 1, 2, 3, 4},
 		[]int{5, 6, 7, 8, 9},
 		[]int{10, 11, 12, 13, 14},
 	},
-	[]Bin{
+	[]Bin{ // Alphabetical
 		[]int{5, 6, 7, 8, 9},
 		[]int{0, 1, 2, 3, 4},
 		[]int{10, 11, 12, 13, 14},
 	},
-	[]Bin{
+	[]Bin{ // Disorder
 		[]int{10, 11, 12, 13, 14},
 		[]int{5, 6, 7, 8, 9},
 		[]int{0, 1, 2, 3, 4},
@@ -122,11 +129,15 @@ func ExampleSyncIncrement(increasingOffsets []int) (with, without map[int][]int)
 	for i := range increasingOffsets {
 		key := int(increasingOffsets[i])
 
+		// Build a sequence of three, notice both the next steps
+		// in this inner loop, versus the same loop in the syncronized example further beyond.
 		for ii := 1; ii <= 3; ii++ {
 			immediate[key] = []int{ii}
 			key++
 		}
 
+		// The next two steps generate a n:[1] and n+1:[2]
+		// Rather than
 		for ii := 1; ii <= 2; ii++ {
 			immediate[key] = []int{ii}
 			key++
@@ -139,9 +150,10 @@ func ExampleSyncIncrement(increasingOffsets []int) (with, without map[int][]int)
 	for i := range increasingOffsets {
 		key := int(increasingOffsets[i])
 
+		// Generate a list in the same bin
 		for ii := 1; ii <= 3; ii++ {
 			syncedLater[key] = append(syncedLater[key], ii)
-			sync.incrementLater(&key)
+			sync.incrementLater(&key) // Notice the key value stays the same until before next group is generated
 		}
 		sync.laterIsNow() // Here is the big differentiator
 
@@ -150,8 +162,7 @@ func ExampleSyncIncrement(increasingOffsets []int) (with, without map[int][]int)
 			sync.incrementLater(&key)
 		}
 		sync.laterIsNow()
-		syncedLater[key] = []int{999}
-
+		syncedLater[key] = []int{999} // This is a helpful end of sequence mark, better than the next in sequence int{7}
 	}
 
 	return syncedLater, immediate
