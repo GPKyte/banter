@@ -25,3 +25,12 @@ func TestIncrementStrategy(t *testing.T) {
 	with, without := sort.ExampleSyncIncrement(offsets)
 	t.Logf("\nWith: %v\nWithout: %v", with, without)
 }
+
+func TestExampleFlow(t *testing.T) {
+	sort.ExampleFlow()
+
+	if failed := recover(); failed != nil {
+		t.Fail()
+		t.Log(failed)
+	}
+}
