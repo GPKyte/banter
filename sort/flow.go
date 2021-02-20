@@ -39,6 +39,11 @@ var ExampleOrderedBinSeries = OrderedBinSeries{
 		[]int{5, 6, 7, 8, 9},
 		[]int{0, 1, 2, 3, 4},
 	},
+	[]Bin{ // Timestamp or UID... Makes me really look at the space issue glaring here.
+		[]int{},
+		[]int{},
+		[]int{},
+	},
 }
 
 // flow orders indices
@@ -169,5 +174,54 @@ func ExampleSyncIncrement(increasingOffsets []int) (with, without map[int][]int)
 }
 
 func ExampleFlow() {
+	var disordered = []int{6, 5, 3, 1, 2, 8, 7, 4}
+	var odd = []int{1, 3, 5, 7}
+	var even = []int{2, 4, 6, 8}
+	var input = []int{1, 2, 3, 4, 5, 6, 7, 8}
+	//var english = []int{"one", "two", "three", "four", "five", "six", "seven", "eight"}
+	//var hiragana = []int{"一","二","三","四","六","七","八","九"}
+	//var nada []int{""," ","  ","   ","    ","     ","     ","       ",}
+	//var cat []int{1,12,123,1234,12345,123456,1234567,12345678,}
+	var oddThenEvenBins = OrderedBins{
+		odd,
+		even,
+	}
+	var startDisorderedBin = OrderedBins{
+		disordered,
+	}
+	var englishOrderedBins = OrderedBins{
+		[]int{ /*five*/ 5 /*four*/, 4 /*eight*/, 8 /*one*/, 1 /*seven*/, 7 /*six*/, 6 /*three*/, 3 /*two*/, 2},
+	}
+	var doNothingBins = OrderedBins{
+		[]int{},
+	}
 
+	// Flow is taking one OrderedBinsSeries we've hand crafted and ordering it with disordered initial states
+	// and finding the reordering that is confirmed sorted with Insertion Sort :)
+	OddAndEven := oddThenEvenBins.ExpandIndexRangesOf(map[int][]int{0: input})
+	OddAndEvenFromDisordered := oddThenEvenBins.ExpandIndexRangesOf(map[int][]int{0: disordered})
+
+	for math, any := range OddAndEven[0] {
+		if (math * 2) < any /*Even from 0*/ {
+			panic(fmt.Sprint(math*2, " ", any))
+		} else if any%2 != 0 {
+			panic(fmt.Sprint(math*2, " ", any))
+		}
+	}
+	for _, any := range OddAndEvenFromDisordered[len(odd)] {
+		if any%2 != 0 {
+			panic(fmt.Sprint(any))
+		}
+	}
+	if len(OddAndEven[0]) != len(OddAndEvenFromDisordered[0]) {
+		panic("Odd set did not form the same from both sets.")
+	}
+
+	var doNothing = func(thing OrderedBins) {
+		return
+	}
+
+	doNothing(doNothingBins)
+	doNothing(startDisorderedBin)
+	doNothing(englishOrderedBins)
 }
