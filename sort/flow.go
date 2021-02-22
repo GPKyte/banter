@@ -75,6 +75,10 @@ func (ob OrderedBins) ExpandIndexRangesOf(allThese map[int][]int) (toThese map[i
 		}
 	}
 
+	// Ordering does not consider the input ordering, this is the problem.
+	// Write so as to lookup allThese and apply ordered bins ordering...
+	// consider writing how...exactly? find out in morning.
+
 	toThese = make(map[int][]int)
 	// Expand the range into subranges
 	for _, bin := range ob {
@@ -201,16 +205,19 @@ func ExampleFlow() {
 	OddAndEven := oddThenEvenBins.ExpandIndexRangesOf(map[int][]int{0: input})
 	OddAndEvenFromDisordered := oddThenEvenBins.ExpandIndexRangesOf(map[int][]int{0: disordered})
 
-	for math, any := range OddAndEven[0] {
-		if (math * 2) < any /*Even from 0*/ {
-			panic(fmt.Sprint(math*2, " ", any))
-		} else if any%2 != 0 {
-			panic(fmt.Sprint(math*2, " ", any))
+	fmt.Print(OddAndEven)
+	fmt.Print(OddAndEvenFromDisordered)
+
+	for math, anyOdd := range OddAndEven[0] {
+		if (math * 2) >= anyOdd /*Even from 0*/ {
+			panic(fmt.Sprintf("this even, %d, should be before %d", math*2, anyOdd))
+		} else if anyOdd%2 != 1 {
+			panic(fmt.Sprint(math*2, " ", anyOdd))
 		}
 	}
-	for _, any := range OddAndEvenFromDisordered[len(odd)] {
-		if any%2 != 0 {
-			panic(fmt.Sprint(any))
+	for _, anyEven := range OddAndEvenFromDisordered[len(odd)] {
+		if anyEven%2 != 0 { // Even
+			panic(fmt.Sprint(anyEven))
 		}
 	}
 	if len(OddAndEven[0]) != len(OddAndEvenFromDisordered[0]) {
