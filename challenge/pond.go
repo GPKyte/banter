@@ -111,29 +111,29 @@ func (m *BasicMatrix) Set(row, col, value int) {
 }
 
 // Fill a BasicMatric with Numbers until m full
-// Error check this process by confirming src NumberReader returns EOF after this process if desired.
-func (m BasicMatrix) Fill(src NumberReader) {
+// Error check this process by confirming src NumberScanner returns EOF after this process if desired.
+func (m BasicMatrix) Fill(src NumberScanner) {
 	for i := 0; i<len(m); i++ {
 		for ii := 0; ii<len(m[i]); ii++ {
-			m.Set(i, ii, src.ReadNextInt())
+			m.Set(i, ii, src.NextInt())
 		}
 	}
 }
 
-type NumberReader interface {
-	ReadNextInt()
+type NumberScanner interface {
+	NextInt()
 }
-type AscendingNumberReader int
-type TestNumberReader []int
-type IONumberReader io.Reader
+type AscendingNumberScanner int
+type TestNumberScanner []int
+type IONumberScanner io.Reader
 
 
-func (r *AscendingNumberReader) ReadNextInt() int {
+func (r *AscendingNumberScanner) NextInt() int {
 	*r += 1
 	return *r-1
 }
 
-func (r *TestNumberReader) ReadNextInt() (int, error) {
+func (r *TestNumberScanner) NextInt() (int, error) {
 	var next int = r[0]
 	*r = dropFirst(r)
 
@@ -151,7 +151,7 @@ func dropFirst(maybeEmptySlice *[]int) []int {
 	return (*maybeEmptySlice)[1:len(*maybeEmptySlice)]
 }
 
-func (r *IONumberReader) ReadNextInt() int {
+func (r *IONumberScanner) NextInt() int {
 	// We need to read byte by byte and after encountering 0-9 anything other than 0-9 indicates end of current int
 	var place = make([]byte, 0)
 	var wordHolder = make([]byte, 0)
