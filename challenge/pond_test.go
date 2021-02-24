@@ -1,54 +1,44 @@
 package challenge_test
 
 import (
+	"strings"
 	"testing"
+	"text/scanner"
 
 	"github.com/GPKyte/banter/challenge"
 )
 
-type TestNumberScanner challenge.DefaultNumberScanner
+type TestNumberScanner struct {
+	pos int
+	src []int
+}
+
+func (s TestNumberScanner) NextInt() int {
+	next := s.src[s.pos]
+	s.pos++
+	return next
+}
 
 const BigEndianMinInteger = int32(1 << 30) // 32 bit, signed 1111...1{28} equivalent positive integer 0111...1{28}
 const BigEndianMaxInteger = int32(1<<30 - 1)
 
-func TestInitAndFillMatrices(t *testing.T) {
+func TestInitAndFillMatrix(t *testing.T) {
 	var height, width int = 4, 4
-	raw := []byte(string("1 2 3 4\n5 6 7 8\n9 10 11 12\n13 14 15 16")) // Actual format
-	lines := []string{
-		"3 3 3 3",
-		"3 1 1 3",
-		"3 1 1 3",
-		"3 3 3 3",
-	}
-	basic := []byte{byte(1), byte(2), byte(3), byte(4), byte(5), byte(6), byte(7), byte(8), byte(9), byte(10), byte(11), byte(12), byte(13), byte(14), byte(15), byte(16)}
-	digital := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 0, 1, 1, 1, 2, 1, 3, 1, 4, 1, 5, 1, 6} // False
-	goal := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16}                  // Best format
+	goal := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16}
 
 	MattG := challenge.InitMatrix(height, width)
-	MattG.Fill(goal)
-	MattR := challenge.InitMatrix(height, width)
-	MattR.Fill(raw)
-	MattB := challenge.InitMatrix(height, width)
-	MattB.Fill(basic)
-	MattD := challenge.InitMatrix(height, width)
-	MattD.Fill(digital)
-	MattL := challenge.InitMatrix(height, width)
-	MattL.Fill(lines)
+	(*MattG).Fill(TestNumberScanner{0, goal})
+	var expectedTotal int = 17 * 8
 
-	// Digital is a mess, we don't support that.
-	src := map[bool][]*challenge.Matrix{true: []*challenge.Matrix{MattR, MattB, MattL}, false: []*challenge.Matrix{MattD}}
-
-	// Test the results of Equating these Matrices to the Goal outcome
-	for expectedGoalCondition := range src {
-		for _, Matt := range src {
-			actualCondition := MattG.Equals(Matt)
-
-			if expectedGoalCondition != actualCondition {
-				t.Fail()
-				t.Logf("TestI...FillMatrices: Expected .Equals to be $v, but was $v.", expectedGoalCondition != actualCondition)
-				t.Log(Matt)
-			}
-		}
+	if (*MattG).Total() != expectedTotal {
+		t.Fail()
+		t.Logf("TestI...FillMatrices: Expected %v, but was %v.", expectedTotal != (*MattG).Total())
+		t.Log(*MattG)
+	}
+	if (*MattG).Get(2, 4) != goal[2*4] {
+		t.Fail()
+		t.Logf("TestI...FillMatrices: Expected %v, But got %v", goal[2*4], (*MattG).Get(2, 4))
+		t.Log(*MattG)
 	}
 }
 
@@ -57,14 +47,14 @@ func TestBlackBoxKnownResults(t *testing.T) {
 	// Calculate their counterpart
 	// Compare them using Matrix Subtraction, a feature we could certainly improve on LATER
 	// Return total totalSum of water
-	MattBefore := challenge.InitMatrix(4, 3)
+	MattBefore := *challenge.InitMatrix(4, 3)
 	MattBefore.Fill(
 		"3 3 3",
 		"3 1 3",
 		"3 1 3",
 		"3 3 3",
 	)
-	MattAfter := challenge.InitMatrix(4, 3)
+	MattAfter := *challenge.InitMatrix(4, 3)
 	MattAfter.Fill(
 		"3 3 3",
 		"3 3 3",
@@ -90,10 +80,42 @@ func TestBlackBoxKnownResults(t *testing.T) {
 		TravisBefore.Next()
 	}
 
-	if manualSum != expectedVolumeOrTotalSumOfDifference {
+	if manualSum != expectedVolumeOrTotalSumOfDifference || manualSum != totalSumDifference {
 		t.Fail()
-		t.Log("Expected %v, but found %v instead", expectedVolumeOrTotalSumOfDifference, manualSum)
+		t.Log("Expected %v, but found %v and %v instead", expectedVolumeOrTotalSumOfDifference, manualSum, totalSumDifference)
 	}
+}
+
+func TestSingleSolution(t *testing.T) {
+	var problemDefinition = strings.NewReader(`7 7
+	1 7 7 7 7 7 3
+	4 1 1 1 2 1 4
+	3 1 1 1 2 1 5
+	5 1 1 2 2 1 7
+	5 2 8 8 1 1 8
+	3 1 1 4 1 1 4
+	5 5 5 5 5 5 8`)
+
+	var filledMatrixDefinition = strings.NewReader(
+		`1 7 7 7 7 7 3
+4 3 3 3 3 3 4
+3 3 3 3 3 3 5
+5 3 3 3 3 3 7
+5 3 8 8 3 3 8
+3 3 3 4 3 3 4
+5 5 5 5 5 5 8`)
+	var s scanner.Scanner
+	s.Init(filledMatrixDefinition)
+
+	var matt = challenge.InitMatrix(7, 7)
+	(*matt).Fill(challenge.StdNumberScanner{From: &s})
+
+	solution := challenge.SingleSolution(problemDefinition)
+
+	t.Fail()
+	t.Log(matt)
+	t.Log(solution)
+	t.Log(problemDefinition)
 }
 
 type OrderedMap interface {
@@ -140,7 +162,7 @@ func TestMetaLayeringStrategy(t *testing.T) {
 		var mayBeNilList = groupIndicesByTheirSharedElemValues.Unordered[item]
 		var notNilList []int
 
-		if len(maybeEmptyList) == 0 {
+		if len(mayBeNilList) == 0 {
 			notNilList = make([]int, 0)
 			groupIndicesByTheirSharedElemValues.Unordered[item] = notNilList
 		}
