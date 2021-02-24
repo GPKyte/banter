@@ -6,8 +6,10 @@ import (
 	"github.com/GPKyte/banter/challenge"
 )
 
+type TestNumberScanner challenge.DefaultNumberScanner
+
 const BigEndianMinInteger = int32(1 << 30) // 32 bit, signed 1111...1{28} equivalent positive integer 0111...1{28}
-const BigEndianMaxInteger = int32(1 << 30 - 1)
+const BigEndianMaxInteger = int32(1<<30 - 1)
 
 func TestInitAndFillMatrices(t *testing.T) {
 	var height, width int = 4, 4
@@ -18,9 +20,9 @@ func TestInitAndFillMatrices(t *testing.T) {
 		"3 1 1 3",
 		"3 3 3 3",
 	}
-	basic := []byte{byte(1),byte(2),byte(3),byte(4),byte(5),byte(6),byte(7),byte(8),byte(9),byte(10),byte(11),byte(12),byte(13),byte(14),byte(15),byte(16)}
-	digital := []int{1,2,3,4,5,6,7,8,9,1,0,1,1,1,2,1,3,1,4,1,5,1,6} // False
-	goal := []int{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16} // Best format
+	basic := []byte{byte(1), byte(2), byte(3), byte(4), byte(5), byte(6), byte(7), byte(8), byte(9), byte(10), byte(11), byte(12), byte(13), byte(14), byte(15), byte(16)}
+	digital := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 0, 1, 1, 1, 2, 1, 3, 1, 4, 1, 5, 1, 6} // False
+	goal := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16}                  // Best format
 
 	MattG := challenge.InitMatrix(height, width)
 	MattG.Fill(goal)
@@ -34,7 +36,7 @@ func TestInitAndFillMatrices(t *testing.T) {
 	MattL.Fill(lines)
 
 	// Digital is a mess, we don't support that.
-	src := map[bool][]challenge.Matrix{true: []challenge.Matrix{MattR, MattB, MattL}, false: []challenge.Matrix{MattD}}
+	src := map[bool][]*challenge.Matrix{true: []*challenge.Matrix{MattR, MattB, MattL}, false: []*challenge.Matrix{MattD}}
 
 	// Test the results of Equating these Matrices to the Goal outcome
 	for expectedGoalCondition := range src {
@@ -69,18 +71,19 @@ func TestBlackBoxKnownResults(t *testing.T) {
 		"3 3 3",
 		"3 3 3",
 	)
-	var totalSumDifference int = MattAfter.Total - MattBefore.Total
-	
+	var totalSumDifference int = MattAfter.Total() - MattBefore.Total()
+
 	TravisAfter := MattAfter.Traverse()
 	TravisBefore := MattBefore.Traverse()
 	traversals := MattAfter.Size()
-	if traversal != MattBefore.Size() {
+	if traversals != MattBefore.Size() {
 		t.Log("Before and After Matrices are incongruent because the sizes differ. See below:")
 		t.Log(MattBefore)
 		t.Log(MattAfter)
 	}
 
 	manualSum := 0
+	expectedVolumeOrTotalSumOfDifference := (3 /*after*/ - 1 /*before*/) * 2 /*times*/
 	for i := 0; i < traversals; i++ {
 		manualSum += TravisAfter.Now() - TravisBefore.Now()
 		TravisAfter.Next()
@@ -99,8 +102,8 @@ type OrderedMap interface {
 
 // Store the set of numbers used to fill map as keys and their input-ordered indices in lists at every value
 type EqualityListOrderedMap struct {
-	size func()
-	Unordered map[int][]int
+	size        func()
+	Unordered   map[int][]int
 	orderedKeys []int
 }
 
@@ -109,16 +112,12 @@ type EqualityListOrderedMap struct {
 // We could call sort on the numbers using some other package
 // Because it doesn't matter until it does, we choose the less interfacing option
 func (unsorted *EqualityListOrderedMap) Keys() []interface{} {
-	var keys = make([]int, 0)
-	keyCount = len(unsorted.Unordered)
+	var keys = make([]interface{}, 0)
+	var keyCount = len(unsorted.Unordered)
 
 	// TODO: Could implement caching by storing the sorted keys and a "cacheExists" bool "cacheUpToDate" bool
 
-	// Consider what you'd do to compensate for all integers instead. especially negative integers
-	t.Log(BigEndianMaxInteger)
-	t.Log(BigEndianMinInteger)
-
-	for i := 0; len(keys) < keycount && i > 0; i++ {
+	for i := 0; len(keys) < keyCount && i > 0; i++ {
 		if unsorted.Unordered[i] != nil {
 			keys = append(keys, int(i))
 		}
@@ -127,14 +126,13 @@ func (unsorted *EqualityListOrderedMap) Keys() []interface{} {
 	return keys
 }
 
-
 func TestMetaLayeringStrategy(t *testing.T) {
 	// Take a stream of numbers, use an exported process from elsewhere to convert the input into shared value key pairs
 	// The indices will be tracked in place of the numbers, the values copied from the numbers with be keys, the key set will be ordered
 	// We will call this service EqualityListOrderedMap
 	// Layers are all height greater than 0
-	var someNaturalNumbers = []int{1,1,1,2,2,3,4,4,4,4,4,5,5,5,6,7,8,9,9,9,11,11,1,2,3,4,3,2,1}
-	var setOfSameNaturalNumbers = []int{1,2,3,4,5,6,7,8,9,11}
+	var someNaturalNumbers = []int{1, 1, 1, 2, 2, 3, 4, 4, 4, 4, 4, 5, 5, 5, 6, 7, 8, 9, 9, 9, 11, 11, 1, 2, 3, 4, 3, 2, 1}
+	var setOfSameNaturalNumbers = []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 11}
 	var groupIndicesByTheirSharedElemValues = new(EqualityListOrderedMap)
 
 	// Init EqualityListOrderedMap()

@@ -1,9 +1,18 @@
 package challenge
 
 import (
+	"fmt"
 	"io"
-
+	"strconv"
+	"text/scanner"
 )
+type Matrix interface {
+	Get(int, int) int
+	Set(int, int, int)
+	Total() int
+	Equals(*Matrix) bool
+	Fill([]byte)
+}
 
 type TerrainMap struct {
 	terrain Matrix
@@ -56,7 +65,7 @@ func FindCluster(t Tile, lookup TerrainMap) Cluster {
 	// Traverse neighbors of tile
 	// How will we avoid revisiting?
 	// A small map we discard later could do the trick
-	var visited = map[Tile]bool
+	var visited map[Tile]bool
 	var queue = t.FindNeighbors()
 	var sameHeight = height(t)
 
@@ -81,10 +90,6 @@ func FindCluster(t Tile, lookup TerrainMap) Cluster {
 	return Cluster{members, leaky, }	
 }
 
-type Matrix interface {
-	Get(int, int) int
-	Set(int, int, int)
-}
 // InitMatrix prepares a contiguous block of memory to serve as the underlying structure of a BasicMatrix and returns the address for the struct
 func InitMatrix(height, width int) *Matrix {
 	M := new(BasicMatrix)
@@ -102,12 +107,12 @@ type BasicMatrix [][]int
 // Get returns a value from the Tile at the coordinates given
 func (m *BasicMatrix) Get(row, col int) (value int) {
 	// Check boundaries ofcourse
-	return m[row][col]
+	return (*m)[row][col]
 }
 // Set the value for the Tile at the coordinates given to the value given
 func (m *BasicMatrix) Set(row, col, value int) {
 	// Check boundaries ofcourse
-	m[row][col] = value
+	(*m)[row][col] = value
 }
 
 // Fill a BasicMatric with Numbers until m full
@@ -121,58 +126,72 @@ func (m BasicMatrix) Fill(src NumberScanner) {
 }
 
 type NumberScanner interface {
-	NextInt()
+	NextInt() int
 }
+
 type AscendingNumberScanner int
-type TestNumberScanner []int
-type IONumberScanner io.Reader
-
-
-func (r *AscendingNumberScanner) NextInt() int {
-	*r += 1
-	return *r-1
+func (s AscendingNumberScanner) NextInt() int {
+	s += 1
+	return int(s)-1
 }
 
-func (r *TestNumberScanner) NextInt() (int, error) {
-	var next int = r[0]
-	*r = dropFirst(r)
+type DefaultNumberScanner struct {
+	pos int
+	src []int
+}
+func (s DefaultNumberScanner) NextInt() int {
+	next := s.src[s.pos]
+	s.pos++
+	return next
+}
 
-	if EOF := recover(); EOF != nil {
-		return 0, error("EOF")
+type StdNumberScanner struct {
+	from *scanner.Scanner
+}
+func (s StdNumberScanner) NextInt() int {
+	var tok = s.from.Scan() // Parse the next token, but token is not readily usable
+
+	if tok == scanner.EOF {
+		return 0
 	}
 
-	return next, nil
-}
-
-func dropFirst(maybeEmptySlice *[]int) []int {
-	if len(*maybeEmptySlice) <= 1 {
-		return []int{}
+	var num int
+	var err error
+	if num, err = strconv.Atoi(s.from.TokenText()); err != nil {
+		panic(fmt.Errorf("Expected integer, but received %v\n%v", s.from.TokenText(), err))
 	}
-	return (*maybeEmptySlice)[1:len(*maybeEmptySlice)]
+	return num
 }
 
-func (r *IONumberScanner) NextInt() int {
-	// We need to read byte by byte and after encountering 0-9 anything other than 0-9 indicates end of current int
-	var place = make([]byte, 0)
-	var wordHolder = make([]byte, 0)
+func SingleSolution(input io.Reader) {
+	var problemDefinition *scanner.Scanner
+	problemDefinition.Init(input)
+	var get = StdNumberScanner{from: problemDefinition}
 
-	r.Read(place)
-	for each, b := range place {
+	var matrixHeight, matrixWidth int
+	matrixHeight = get.NextInt()
+	matrixWidth = get.NextInt()
 
-		switch b {
-		case byte(0):
-		case byte(1):
-		case byte(2):
-		case byte(3):
-		case byte(4):
-		case byte(5):
-		case byte(6):
-		case byte(7):
-		case byte(8):
-		case byte(9):
-
+	// Take this opportunity and excuse to build a layer map
+	var tilesByHeight = make(LayerTileMap)
+	var saveNumbers = make([]int, 0)
+	for i := 0; i < matrixHeight; i++ {
+		for ii := 0; ii < matrixWidth; ii++ {
+			heightOfTile := get.NextInt()
+			tilesByHeight[heightOfTile] = append(tilesByHeight[heightOfTile], Tile{rowCoordinate: i, colCoordinate: ii})
+			saveNumbers = append(saveNumbers, heightOfTile)
 		}
-		
 	}
-}
 
+	var matt BasicMatrix
+	matt.Fill(DefaultNumberScanner{src: saveNumbers, pos: 0})
+
+	// TODO Now that we've read input and made our two data structures, we will navigate the layers of Tiles and
+	// both classify clusters of tiles as open or closed
+	// we use a BFS method to find a cluster, whilst we record the min height of the neighbors not in the cluster
+	// if the min height is less than the layer, the cluster is open, otherwise the cluster is closed and
+	// the top height could become the height of the lowest neighbor.
+
+	// TODO share the top-height value among cluster members, and update it on the fly.
+	// A cluster could stay in the layer or grow upward
+}
