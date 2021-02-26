@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"text/scanner"
 )
+
 type Matrix interface {
 	Get(int, int) int
 	Set(int, int, int)
@@ -16,20 +17,35 @@ type Matrix interface {
 
 type TerrainMap struct {
 	terrain Matrix
-	layers LayerMap
+	layers  LayerMap
 }
 
 type PondSolver struct {
-	model TerrainMap
+	model  TerrainMap
 	volume int
 }
 
 type LayerTileMap map[int][]Tile
+
+// Keys are ordered ascending from 0.
+// From the problem scope we can say that Keys are greater than or equal to 0
+func (orderedMap LayerTileMap) Keys() []int {
+	var keys = make([]int, 0)
+
+	for i := 0; len(keys) < len(orderedMap); i++ {
+		if orderedMap[i] != nil {
+			keys = append(keys, i)
+		}
+	}
+	return keys
+}
+
 type LayerClusterMap map[int][]Cluster
+
 type Cluster struct {
-	Members []Tile
+	Members        []Tile
 	anyMemberLeaks bool
-	height int
+	height         int
 }
 type Tile struct {
 	rowCoordinate int
@@ -87,16 +103,16 @@ func FindCluster(t Tile, lookup TerrainMap) Cluster {
 		queue = dropFirst(queue)
 	}
 
-	return Cluster{members, leaky, }	
+	return Cluster{members, leaky}
 }
 
 // InitMatrix prepares a contiguous block of memory to serve as the underlying structure of a BasicMatrix and returns the address for the struct
 func InitMatrix(height, width int) *Matrix {
 	M := new(BasicMatrix)
-	contiguousBlock := make([]int, height * width)
+	contiguousBlock := make([]int, height*width)
 
-	for h := 0; h<height; h++ {
-		M.twoDimCollection[h] = contiguousBlock[width*h:width*(h+1)]		
+	for h := 0; h < height; h++ {
+		M.twoDimCollection[h] = contiguousBlock[width*h : width*(h+1)]
 	}
 	return M
 }
@@ -109,6 +125,7 @@ func (m *BasicMatrix) Get(row, col int) (value int) {
 	// Check boundaries ofcourse
 	return (*m)[row][col]
 }
+
 // Set the value for the Tile at the coordinates given to the value given
 func (m *BasicMatrix) Set(row, col, value int) {
 	// Check boundaries ofcourse
@@ -118,8 +135,8 @@ func (m *BasicMatrix) Set(row, col, value int) {
 // Fill a BasicMatric with Numbers until m full
 // Error check this process by confirming src NumberScanner returns EOF after this process if desired.
 func (m *BasicMatrix) Fill(src NumberScanner) {
-	for i := 0; i<len(*m); i++ {
-		for ii := 0; ii<len((*m)[i]); ii++ {
+	for i := 0; i < len(*m); i++ {
+		for ii := 0; ii < len((*m)[i]); ii++ {
 			m.Set(i, ii, src.NextInt())
 		}
 	}
@@ -130,15 +147,17 @@ type NumberScanner interface {
 }
 
 type AscendingNumberScanner int
+
 func (s AscendingNumberScanner) NextInt() int {
 	s += 1
-	return int(s)-1
+	return int(s) - 1
 }
 
 type DefaultNumberScanner struct {
 	pos int
 	src []int
 }
+
 func (s DefaultNumberScanner) NextInt() int {
 	next := s.src[s.pos]
 	s.pos++
@@ -148,6 +167,7 @@ func (s DefaultNumberScanner) NextInt() int {
 type StdNumberScanner struct {
 	From *scanner.Scanner
 }
+
 func (s StdNumberScanner) NextInt() int {
 	var tok = s.From.Scan() // Parse the next token, but token is not readily usable
 
@@ -158,7 +178,7 @@ func (s StdNumberScanner) NextInt() int {
 	var num int
 	var err error
 	if num, err = strconv.Atoi(s.From.TokenText()); err != nil {
-		panic(fmt.Errorf("Expected integer, but received %v\n%v", s.From.TokenText(), err))
+		panic(fmt.Errorf("Only integers allowed in input. Received %v\n%v", s.From.TokenText(), err))
 	}
 	return num
 }
@@ -188,10 +208,53 @@ func SingleSolution(input io.Reader) int {
 
 	// TODO Now that we've read input and made our two data structures, we will navigate the layers of Tiles and
 	// both classify clusters of tiles as open or closed
+	// We need to hold our clusters somewhere, do it by height
+	var getClustersPerLayer = make(LayerClusterMap)
 	// we use a BFS method to find a cluster, whilst we record the min height of the neighbors not in the cluster
 	// if the min height is less than the layer, the cluster is open, otherwise the cluster is closed and
 	// the top height could become the height of the lowest neighbor.
+	for thisHeight := range tilesByHeight.Keys() {
+		var clusterCandidates []Tile = tilesByHeight[thisHeight]
+		var tomo TileVisitor
+		// We upgrade connected tiles to the next layer once verified the do not reside adjacent to a lower tile
+		// Because we start at the bottom and find all the neighbors of the cluster, we avoid redundant or recursive checks down slope
+		for _, cc := range clusterCandidates {
+			var tomoFeltDejavu = tomo.Visit(cc)
+
+			if tomoFeltDejavu {
+				continue
+			}
+			// Otherwise do this instead
+			matt.Get(cc.rowCoordinate, cc.colCoordinate)
+
+		}
+	}
 
 	// TODO share the top-height value among cluster members, and update it on the fly.
 	// A cluster could stay in the layer or grow upward
+}
+
+// Visitor is an interface to wrap the Visit function needed now for matrix traversal
+type Visitor interface {
+	Visit() bool
+}
+
+// TileVisitor maintains a history of Tiles visited at every layer to assist navigation of tile neighbors
+type TileVisitor struct {
+	history map[Tile]bool
+}
+
+// Visit a Tile to mark that area and avoid duplicate work later, this is a version of shortcircuiting in practice.
+func (tv *TileVisitor) Visit(time Tile) (beenHereBefore bool) {
+	// We know that we have not
+	beenHereBefore = false
+	// except...
+	if tv.history[time] {
+		beenHereBefore = true
+	}
+
+	tv.history[time] = true
+
+	// It may be useful to know whether we have
+	return beenHereBefore
 }
