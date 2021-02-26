@@ -11,7 +11,7 @@ type Matrix interface {
 	Set(int, int, int)
 	Total() int
 	Equals(*Matrix) bool
-	Fill([]byte)
+	Fill(NumberScanner)
 }
 
 type TerrainMap struct {
@@ -117,9 +117,9 @@ func (m *BasicMatrix) Set(row, col, value int) {
 
 // Fill a BasicMatric with Numbers until m full
 // Error check this process by confirming src NumberScanner returns EOF after this process if desired.
-func (m BasicMatrix) Fill(src NumberScanner) {
-	for i := 0; i<len(m); i++ {
-		for ii := 0; ii<len(m[i]); ii++ {
+func (m *BasicMatrix) Fill(src NumberScanner) {
+	for i := 0; i<len(*m); i++ {
+		for ii := 0; ii<len((*m)[i]); ii++ {
 			m.Set(i, ii, src.NextInt())
 		}
 	}
@@ -146,10 +146,10 @@ func (s DefaultNumberScanner) NextInt() int {
 }
 
 type StdNumberScanner struct {
-	from *scanner.Scanner
+	From *scanner.Scanner
 }
 func (s StdNumberScanner) NextInt() int {
-	var tok = s.from.Scan() // Parse the next token, but token is not readily usable
+	var tok = s.From.Scan() // Parse the next token, but token is not readily usable
 
 	if tok == scanner.EOF {
 		return 0
@@ -157,16 +157,16 @@ func (s StdNumberScanner) NextInt() int {
 
 	var num int
 	var err error
-	if num, err = strconv.Atoi(s.from.TokenText()); err != nil {
-		panic(fmt.Errorf("Expected integer, but received %v\n%v", s.from.TokenText(), err))
+	if num, err = strconv.Atoi(s.From.TokenText()); err != nil {
+		panic(fmt.Errorf("Expected integer, but received %v\n%v", s.From.TokenText(), err))
 	}
 	return num
 }
 
-func SingleSolution(input io.Reader) {
+func SingleSolution(input io.Reader) int {
 	var problemDefinition *scanner.Scanner
 	problemDefinition.Init(input)
-	var get = StdNumberScanner{from: problemDefinition}
+	var get = StdNumberScanner{From: problemDefinition}
 
 	var matrixHeight, matrixWidth int
 	matrixHeight = get.NextInt()
