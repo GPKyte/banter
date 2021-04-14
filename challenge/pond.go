@@ -212,11 +212,10 @@ func SingleSolution(input io.Reader) int {
 	var matt = BasicMatrix(generateTwoDimArray(matrixHeight, matrixWidth))
 	for iRow := 0; iRow < matrixHeight; iRow++ {
 		for iiCol := 0; iiCol < matrixWidth; iiCol++ {
-			recallHeight
+			recallHeight := saveNumbers[iRow*matrixWidth+iiCol]
 			matt.Set(iRow, iiCol, recallHeight)
 		}
 	}
-	matt.Fill(DefaultNumberScanner{src: saveNumbers, pos: 0})
 
 	// TODO Now that we've read input and made our two data structures, we will navigate the layers of Tiles and
 	// both classify clusters of tiles as open or closed
