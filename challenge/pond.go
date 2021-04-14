@@ -236,14 +236,29 @@ func SingleSolution(input io.Reader) int {
 				continue
 			}
 			// Otherwise do this instead
-			matt.Get(cc.rowCoordinate, cc.colCoordinate)
+			candyHeight = matt.Get(cc.rowCoordinate, cc.colCoordinate)
+			
+			if candyHeight < thisHeight {
+				// One candidate for this cluster is lower than necessary for pond water retention per rules.
 
+			}
 		}
 	}
 
+	
 	// TODO share the top-height value among cluster members, and update it on the fly.
 	// A cluster could stay in the layer or grow upward
 }
+
+type Pond struct {
+	perimiter []Tile
+	interior []Tile
+}
+
+func (p *Pond) Expand() (isChanged bool) {
+	var expandedPerimeter
+}
+
 
 // Visitor is an interface to wrap the Visit function needed now for matrix traversal
 type Visitor interface {
