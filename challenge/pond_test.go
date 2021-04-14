@@ -118,6 +118,17 @@ func TestSingleSolution(t *testing.T) {
 	t.Log(problemDefinition)
 }
 
+func TestVeryLargeAndRandom(t *testing.T) {
+	var theBigBound = 500
+	var theOtherBigBound = 200
+
+	var veryLargeMatt *Matrix = NewMatrix(randomIntSeries(theBigBound * theOtherBigBound))
+
+	t.Log(veryLargeMatt.Total())
+	// Now we have no way to verify
+	t.FailNow()
+}
+
 type OrderedMap interface {
 	Keys() []interface{}
 }
