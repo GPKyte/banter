@@ -189,8 +189,13 @@ func SingleSolution(input io.Reader) int {
 	var get = StdNumberScanner{From: problemDefinition}
 
 	var matrixHeight, matrixWidth int
+	/* Open this comment tag to not take height and width from scanner *
 	matrixHeight = get.NextInt()
 	matrixWidth = get.NextInt()
+	/* Close this comment tag to force set Height and Width */
+	matrixHeight = 5
+	matrixWidth = 5
+	/**/
 
 	// Take this opportunity and excuse to build a layer map
 	var tilesByHeight = make(LayerTileMap)
