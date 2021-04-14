@@ -54,10 +54,10 @@ type Tile struct {
 
 // FindAdjacent wraps the behavior of navigating tiles.
 func FindAdjacent(t Tile) []Tile {
-	neighborDirections := map[string][]Tile {
+	neighborDirections := map[string][]Tile{
 		"north": Tile{-1, 0},
-		"east": Tile{0, 1},
-		"west": Tile{0, -1},
+		"east":  Tile{0, 1},
+		"west":  Tile{0, -1},
 		"south": Tile{1, 0},
 	}
 
@@ -197,7 +197,8 @@ func SingleSolution(input io.Reader) int {
 	matrixWidth = 5
 	/**/
 
-	// Take this opportunity and excuse to build a layer map
+	// If optimization needed for input, consider buffered reading rows of matrix
+	// Take this opportunity to build a layer map
 	var tilesByHeight = make(LayerTileMap)
 	var saveNumbers = make([]int, 0)
 	for i := 0; i < matrixHeight; i++ {
@@ -208,7 +209,13 @@ func SingleSolution(input io.Reader) int {
 		}
 	}
 
-	var matt BasicMatrix
+	var matt = BasicMatrix(generateTwoDimArray(matrixHeight, matrixWidth))
+	for iRow := 0; iRow < matrixHeight; iRow++ {
+		for iiCol := 0; iiCol < matrixWidth; iiCol++ {
+			recallHeight
+			matt.Set(iRow, iiCol, recallHeight)
+		}
+	}
 	matt.Fill(DefaultNumberScanner{src: saveNumbers, pos: 0})
 
 	// TODO Now that we've read input and made our two data structures, we will navigate the layers of Tiles and
@@ -262,4 +269,18 @@ func (tv *TileVisitor) Visit(time Tile) (beenHereBefore bool) {
 
 	// It may be useful to know whether we have
 	return beenHereBefore
+}
+
+func generateTwoDimArray(firstDim, secondDim int) [][]int {
+	var oneDim = make([]int, firstDim*secondDim)
+	var twoDim = make([][]int, 0, firstDim)
+	var slidingStart, slidingFinish int
+
+	for iFirst := 0; iFirst < firstDim; iFirst++ {
+		slidingStart = secondDim * iFirst
+		slidingFinish = secondDim*iFirst + secondDim
+		twoDim[iFirst] = oneDim[slidingStart:slidingFinish]
+	}
+
+	return twoDim
 }
