@@ -55,27 +55,6 @@ func (c *Cluster) retainsRainWater() bool {
 	return !c.anyMemberLeaks
 }
 
-// Group these tiles by adjacent neighbor connection rules.
-// Neighbors are just 2, 3, or 4 Tiles immediately adjacent by up, down, left, and right directions 0-3
-// Some neighbors of a Tile are
-func (Mat *BasicMatrix) Group(these []Tile) [][]Tile {
-	var those [][]Tile
-
-	var lookupAid map[Tile][]Tile
-	for range these {
-		// Fill lookupAid with this loop over these
-		var this []Tile
-
-	}
-
-	for range these {
-		// Using lookupAid's neighbor lists.
-
-		// Which helps more? to have filter a action or to return a bool decision structure
-		// 	e.g. return a sized list of cardinality <= m * n. Who knows lol
-	}
-}
-
 func clusterTogether(maybeConnected []Tile, indis Matrix) ([]Cluster, error) {
 	// Prefer error to quiet? Can I use validator on Matrix instead of this check? Perhaps TODO
 	if len(maybeConnected) == 0 || indis == nil {
@@ -112,6 +91,7 @@ func clusterTogether(maybeConnected []Tile, indis Matrix) ([]Cluster, error) {
 	for _, maybe := range maybeConnected {
 		var may []Tile = lookupAid[maybe] // Just an empty list to fill with neighbors that were found in the first cover loop
 		var be []Tile = FindAdjacent(maybe) // The neighbors of this input tile which need matched against the other input tiles
+
 		for _, bNeighbor := range be {
 			var matches bool
 			// Either the Tiles will be in both the input and the neighbor results, or just the latter
