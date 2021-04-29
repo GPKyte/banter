@@ -183,6 +183,10 @@ func (s StdNumberScanner) NextInt() int {
 	return num
 }
 
+// SingleSolution takes a problem definition via the input parameter.
+// Given the dimensions of a numerical matrix, and the numbers to fill it,
+// Return the expected volume of water which would be trapped in a landscape
+// 	described by the matrix. Refer to the file beginning for the details
 func SingleSolution(input io.Reader) int {
 	var problemDefinition *scanner.Scanner
 	problemDefinition.Init(input)
@@ -201,14 +205,16 @@ func SingleSolution(input io.Reader) int {
 	// Take this opportunity to build a layer map
 	var tilesByHeight = make(LayerTileMap)
 	var saveNumbers = make([]int, 0)
-	for i := 0; i < matrixHeight; i++ {
-		for ii := 0; ii < matrixWidth; ii++ {
-			heightOfTile := get.NextInt()
-			tilesByHeight[heightOfTile] = append(tilesByHeight[heightOfTile], Tile{rowCoordinate: i, colCoordinate: ii})
+	for iRow := 0; iRow < matrixHeight; iRow++ {
+		for iiCol := 0; iiCol < matrixWidth; iiCol++ {
+			heightOfTile := get.NextInt() // SECTION 210 H
+			tilesByHeight[heightOfTile] = append(tilesByHeight[heightOfTile], Tile{rowCoordinate: iRow, colCoordinate: iiCol})
 			saveNumbers = append(saveNumbers, heightOfTile)
 		}
 	}
 
+	// Build a matrix describing a landscape with the saved numbers from SECTION 210 H
+	// TODO Decide whether it's necessary to build a copy matrix just so we can modify one matrix without concern
 	var matt = BasicMatrix(generateTwoDimArray(matrixHeight, matrixWidth))
 	for iRow := 0; iRow < matrixHeight; iRow++ {
 		for iiCol := 0; iiCol < matrixWidth; iiCol++ {
