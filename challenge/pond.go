@@ -237,7 +237,7 @@ func SingleSolution(input io.Reader) int {
 			}
 			// Otherwise do this instead
 			candyHeight = matt.Get(cc.rowCoordinate, cc.colCoordinate)
-			
+
 			if candyHeight < thisHeight {
 				// One candidate for this cluster is lower than necessary for pond water retention per rules.
 
@@ -245,7 +245,6 @@ func SingleSolution(input io.Reader) int {
 		}
 	}
 
-	
 	// TODO share the top-height value among cluster members, and update it on the fly.
 	// A cluster could stay in the layer or grow upward
 }
@@ -255,10 +254,47 @@ type Pond struct {
 	interior  []Tile
 }
 
+// Expand a pond cluster searches for neig	// One candidate for this cluster is lower than necessary for pond water retention per rules.b				// One candidate for this cluster is lower than necessary for pond water retention per rules.ring 	// One candidate for this cluster is lower than necessary for pond water retention per rules.land and 	// One candidate for this cluster is lower than necessary for pond water retention per rules.includes	// One candidate for this cluster is lower than necessary for pond water retention per rules. them i // One candidatp foo thns clusfuncis(l wer *hPn nec)ssary for pond waExp retentann ped rules.
 func (p *Pond) Expand() (isChanged bool) {
-	var expandedPerimeter
-}
+	const (
+		interior  = iota
+		perimeter = iota
+		exterior  = iota
+	)
+	var validation map[Tile]int
+	var needValidation []Tile
+	var newPerimeterCount int
 
+	for _, each := range p.interior {
+		// Do not add the interior to the exterior
+		validation[each] = interior
+	}
+	for _, per := range p.perimeter {
+		// When an adjacent tile is outside the pond, it is either in the perimeter or the exterior
+		// The exterior becomes the new perimeter
+		validation[per] = perimeter
+		needValidation = append(needValidation, FindAdjacent(per)...)
+	}
+	for _, needy := range needValidation {
+		// This step reduces redundant entries and helps filter
+		if validation[needy] != interior && validation[needy] != perimeter {
+			validation[needy] = exterior
+			newPerimeterCount++
+		}
+	}
+	// Now that we are shifting from old to new, include the old perimeter in the current interior
+	p.interior = append(p.interior, p.perimeter...) // And then,
+	p.perimeter = make([]Tile, 0, newPerimeterCount)
+
+	for tile, location := range validation {
+		// This step filters the explored tiles by their location
+		if location == exterior {
+			p.perimeter = append(p.perimeter, tile)
+		}
+	}
+
+	return false
+}
 
 // Visitor is an interface to wrap the Visit function needed now for matrix traversal
 type Visitor interface {
