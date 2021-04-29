@@ -91,12 +91,12 @@ func (c *Cluster) retainsRainWater() bool {
 func clusterTogether(maybeConnected []Tile, indis Matrix) ([]Cluster, error) {
 	// Prefer error to quiet? Can I use validator on Matrix instead of this check? Perhaps TODO
 	if len(maybeConnected) == 0 || indis == nil {
-		return nil, fmt.Errorf("Tiles are a required argument. Try again.")
+		return nil, fmt.Errorf("Tiles are a required argument. So is the Matrix. Try again.")
 	}
 	// Given the tiles above,
 	// Return the same tiles, but group any series of adjacent tiles together as a cluster.
 	// It is convenient to decide here whether the cluster is leaky or not. Granted, we are lacking needed information to do so.
-	var clusterHeight = maybeConnected[0]
+	var clusterHeight = indus.Get(maybeConnected[0].rowCoordinate, maybeConnected[0].colCoordinate)
 	var lookupAid map[Tile][]Tile
 	for _, seems := range maybeConnected {
 		lookupAid[seems] = make([]Tile, 0, len(maybeConnected)-1) // Prep work, these will be lost if redundancy exists. Might exist?
@@ -134,8 +134,6 @@ func clusterTogether(maybeConnected []Tile, indis Matrix) ([]Cluster, error) {
 			// Recall we return Clusters, i.e. []Tiles + metadata
 			lookupAid[bNeighbor] = append(lookupAid[bNeighbor], maybe) // Add tile to neighbor
 			lookupAid[maybe] = append(lookupAid[maybe], bNeighbor) // Add neighbor to tile
-
-			newDistributedListOfMembers = append(lookupAid[bNeighbor], lookupAid[maybe]...)
 		}
 
 		// share reference to the conjoined slices that store neighbors, still use append
