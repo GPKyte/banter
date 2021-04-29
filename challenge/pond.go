@@ -47,6 +47,20 @@ type Cluster struct {
 	anyMemberLeaks bool
 	height         int
 }
+
+// retainsRainWater is a nicety relevant for the original problem definition which reads well in an If statement.
+func (c *Cluster) retainsRainWater() bool {
+	// Will need to find whether anyMemberLeaks by searching the perimeter beyond the cluster
+	// The cluster does not have access to this information so it must be decided elsewhere
+	return !c.anyMemberLeaks
+}
+func clusterTogether(maybeConnected []Tile) []Cluster {
+	// Given the tiles above,
+	// Return the same tiles, but group any series of adjacent tiles together as a cluster.
+	// It is convenient to decide here whether the cluster is leaky or not. Granted, we are lacking needed information to do so.
+	return nil
+}
+
 type Tile struct {
 	rowCoordinate int
 	colCoordinate int
@@ -223,36 +237,42 @@ func SingleSolution(input io.Reader) int {
 		}
 	}
 
-	// TODO Now that we've read input and made our two data structures, we will navigate the layers of Tiles and
-	// both classify clusters of tiles as open or closed
-	// We need to hold our clusters somewhere, do it by height
-	var getClustersPerLayer = make(LayerClusterMap)
-	// we use a BFS method to find a cluster, whilst we record the min height of the neighbors not in the cluster
-	// if the min height is less than the layer, the cluster is open, otherwise the cluster is closed and
-	// the top height could become the height of the lowest neighbor.
-	for thisHeight := range tilesByHeight.Keys() {
-		var clusterCandidates []Tile = tilesByHeight[thisHeight]
-		var tomo TileVisitor
-		// We upgrade connected tiles to the next layer once verified the do not reside adjacent to a lower tile
-		// Because we start at the bottom and find all the neighbors of the cluster, we avoid redundant or recursive checks down slope
-		for _, cc := range clusterCandidates {
-			var tomoFeltDejavu = tomo.Visit(cc)
+	// Find max to decide when to stop searching later
+	var maxHeight int
+	var minHeight int = 0 // Per the problem definition, this could change
+	for _, newHeightValue := range saveNumbers {
+		if newHeightValue > maxHeight {
+			maxHeight = newHeightValue
+		}
+	}
 
-			if tomoFeltDejavu {
-				continue
-			}
-			// Otherwise do this instead
-			candyHeight = matt.Get(cc.rowCoordinate, cc.colCoordinate)
+	// A layer includes connected tiles of the same current height
+	// A cluster *could* have different height tiles by design, but is intended for height-differentiation.
+	//	 A cluster *could* alternatively grow upward instead, but this is not preferred
+	var recordClustersPerLayer LayerClusterMap // Store found clusters here by height
+	// Use Breadth first search, BFS, to find a cluster whilst we record the min height of the perimeter.
+	// Start the BFS from the lowest height, tiles at minHeight
 
-			if candyHeight < thisHeight {
-				// One candidate for this cluster is lower than necessary for pond water retention per rules.
+	for iHeight := minHeight; iHeight < maxHeight; iHeight++ {
+		// Every tile at this height is either at it's original height or was promoted to this height
+		// Every tile at this height is either connected to at least one tile of lesser height or none
 
+		// Knowing this layer's clusters is helpful because the perimeter of a cluster decides
+		//	whether or not the entire cluster of tiles stays the same height or is raised by the "rain water"
+		recordClustersPerLayer[iHeight] = clusterTogether(tilesByHeight[iHeight])
+		for _, cluster := range recordClustersPerLayer[iHeight] {
+			if cluster.retainsRainWater() {
+				// Promote tiles by raising them to next layer
+				tilesByHeight[iHeight+1] = append(tilesByHeight[iHeight+1], cluster.Members...)
 			}
 		}
 	}
 
 	// TODO share the top-height value among cluster members, and update it on the fly.
-	// A cluster could stay in the layer or grow upward
+
+	// TODO Find answer
+	var volumeOfRainWater int
+	return volumeOfRainWater
 }
 
 type Pond struct {
