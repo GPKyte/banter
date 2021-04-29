@@ -40,6 +40,39 @@ func (orderedMap LayerTileMap) Keys() []int {
 	return keys
 }
 
+// What would finding the cluster of an area look like?
+// Say I look at Tile_0 from the input reel and it has two neighbors, Tile_01, Tile_02.
+// I found the neighbors via a helper function "FindAdjacent".
+// Tile_0 is a border tile in the upperleft corner of a Matrix or Terrain Map in this example.
+// Tile_0 is first into the Q, followed by 01 and 02, 01's neighbors 01a 01b 01c then 02's neighbors 02a 01b 02c
+// Exploring and revisiting these Tiles in a certain order via a Q affords well-known benefits from the BFS
+
+// Q.ueue of Tiles found via the BFS method on the prestructured data (e.g. Matrix, graph)
+type Q struct {
+	frontLine *[]Tile
+}
+// Serve will bring the next Tile out from a wait state
+func (q *Q) serve() Tile {
+	const outOfRange = -99999
+	const errorTile = Tile{outOfRange, outOfRange}
+	var lenQ = len(*(*q).frontline) // This number appears several times locally
+
+	// cannot return a Tile, error condition
+	if lenQ<=0 {
+		return errorTile
+	}
+
+	beingServed  = *(*q.frontline)[0]
+	*q.frontline = *(*q.frontline)[1:]
+
+	return beginServed
+}
+// Wait will enqueue
+func (q *Q) wait(here Tile) {
+	// Will this lack of pointing to references lead to a frontline issue?
+	q.frontLine = append(q.frontline, here)
+}
+
 type LayerClusterMap map[int][]Cluster
 
 type Cluster struct {
