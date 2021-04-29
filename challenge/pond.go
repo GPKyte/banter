@@ -251,8 +251,8 @@ func SingleSolution(input io.Reader) int {
 }
 
 type Pond struct {
-	perimiter []Tile
-	interior []Tile
+	perimeter []Tile
+	interior  []Tile
 }
 
 func (p *Pond) Expand() (isChanged bool) {
