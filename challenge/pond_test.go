@@ -86,6 +86,20 @@ func TestBlackBoxKnownResults(t *testing.T) {
 	}
 }
 
+func TestMatrixOperations(t *testing.T) {
+	var mat = challenge.BasicMatrix([][]int{
+		[]int{1, 7, 7, 7, 7, 7, 3},
+		[]int{4, 1, 1, 1, 2, 1, 4},
+		[]int{3, 1, 1, 1, 2, 1, 5},
+		[]int{5, 1, 1, 2, 2, 1, 7},
+		[]int{5, 2, 8, 8, 1, 1, 8},
+		[]int{3, 1, 1, 4, 1, 1, 4},
+		[]int{5, 5, 5, 5, 5, 5, 8},
+	})
+
+	t.Log(mat)
+}
+
 func TestSingleSolution(t *testing.T) {
 	var problemDefinition = strings.NewReader(`7 7
 	1 7 7 7 7 7 3
