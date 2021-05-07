@@ -17,7 +17,7 @@ type Matrix interface {
 
 type TerrainMap struct {
 	terrain Matrix
-	layers  LayerMap
+	layers  LayerTileMap
 }
 
 type PondSolver struct {
@@ -26,6 +26,9 @@ type PondSolver struct {
 }
 
 type LayerTileMap map[int][]Tile
+
+// MaxMapSize is an arbitrary limit
+const MaxMapSize = 99999
 
 // Keys are ordered ascending from 0.
 // From the problem scope we can say that Keys are greater than or equal to 0
@@ -51,22 +54,24 @@ func (orderedMap LayerTileMap) Keys() []int {
 type Q struct {
 	frontLine *[]Tile
 }
+
 // Serve will bring the next Tile out from a wait state
 func (q *Q) serve() Tile {
-	const outOfRange = -99999
+	const outOfRange = -MaxMapSize
 	const errorTile = Tile{outOfRange, outOfRange}
 	var lenQ = len(*(*q).frontline) // This number appears several times locally
 
 	// cannot return a Tile, error condition
-	if lenQ<=0 {
+	if lenQ <= 0 {
 		return errorTile
 	}
 
-	beingServed  = *(*q.frontline)[0]
+	beingServed = *(*q.frontline)[0]
 	*q.frontline = *(*q.frontline)[1:]
 
-	return beginServed
+	return beingServed
 }
+
 // Wait will enqueue
 func (q *Q) wait(here Tile) {
 	// Will this lack of pointing to references lead to a frontline issue?
@@ -104,7 +109,7 @@ func clusterTogether(maybeConnected []Tile, indis Matrix) ([]Cluster, error) {
 
 	// Background daemon will determine if clusterIsLeaky or not
 	var maybeNeighbors chan Tile
-	var clusterIsLeaky bool = false
+	var clusterIsLeaky bool = false // Until proven true
 	go func() {
 		var now = true
 		for now {
@@ -119,10 +124,9 @@ func clusterTogether(maybeConnected []Tile, indis Matrix) ([]Cluster, error) {
 		// When does this close??
 	}()
 
-
 	// Look up the neighbors and build the adjacency map to determine connectivity relavent to cluster analysis
 	for _, maybe := range maybeConnected {
-		var may []Tile = lookupAid[maybe] // Just an empty list to fill with neighbors that were found in the first cover loop
+		var may []Tile = lookupAid[maybe]   // Just an empty list to fill with neighbors that were found in the first cover loop
 		var be []Tile = FindAdjacent(maybe) // The neighbors of this input tile which need matched against the other input tiles
 
 		for _, bNeighbor := range be {
@@ -133,17 +137,15 @@ func clusterTogether(maybeConnected []Tile, indis Matrix) ([]Cluster, error) {
 			}
 			// Recall we return Clusters, i.e. []Tiles + metadata
 			lookupAid[bNeighbor] = append(lookupAid[bNeighbor], maybe) // Add tile to neighbor
-			lookupAid[maybe] = append(lookupAid[maybe], bNeighbor) // Add neighbor to tile
+			lookupAid[maybe] = append(lookupAid[maybe], bNeighbor)     // Add neighbor to tile
 		}
 
 		// share reference to the conjoined slices that store neighbors, still use append
 
-
 		//add matching neighbors to growing list, then append that to the matche's neighbor list?
 		// what holds the list of neighbors? Edges rather are kept looked up by each vertex's list of neighbors, bidirection is maintained.
 		// lookupAid[vertex] = []Tile
-		lookupAid[maybe] 
-	)
+	}
 	return nil, nil
 }
 
@@ -242,6 +244,22 @@ func (m *BasicMatrix) Fill(src NumberScanner) {
 	}
 }
 
+// Equals referenes deep values
+func (one *BasicMatrix) Equals(another *Matrix) bool {
+	// Use the one BasicMatrix and the API of Matrix to find equality by catching OOB error over ther other Matrix
+	for iCountdown := len(*one); iCountdown > 0; iCountdown-- {
+		for iiCountdown := len((*one)[iCountdown]); iiCountdown > 0; iiCountdown-- {
+			this := (*one).Get(iCountdown, iiCountdown)
+			that := (*another).Get(iCountdown, iiCountdown)
+
+			if this != that {
+				return false
+			}
+		}
+	}
+	return true
+}
+
 type NumberScanner interface {
 	NextInt() int
 }
@@ -315,7 +333,7 @@ func SingleSolution(input io.Reader) int {
 
 	// Build a matrix describing a landscape with the saved numbers from SECTION 210 H
 	// TODO Decide whether it's necessary to build a copy matrix just so we can modify one matrix without concern
-	var matt = BasicMatrix(generateTwoDimArray(matrixHeight, matrixWidth))
+	var matt Matrix = BasicMatrix(generateTwoDimArray(matrixHeight, matrixWidth))
 	for iRow := 0; iRow < matrixHeight; iRow++ {
 		for iiCol := 0; iiCol < matrixWidth; iiCol++ {
 			recallHeight := saveNumbers[iRow*matrixWidth+iiCol]
@@ -345,7 +363,7 @@ func SingleSolution(input io.Reader) int {
 
 		// Knowing this layer's clusters is helpful because the perimeter of a cluster decides
 		//	whether or not the entire cluster of tiles stays the same height or is raised by the "rain water"
-		recordClustersPerLayer[iHeight] = clusterTogether(tilesByHeight[iHeight])
+		recordClustersPerLayer[iHeight] = clusterTogether(tilesByHeight[iHeight], matt)
 		for _, cluster := range recordClustersPerLayer[iHeight] {
 			if cluster.retainsRainWater() {
 				// Promote tiles by raising them to next layer
