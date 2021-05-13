@@ -75,7 +75,7 @@ func (q *Q) serve() Tile {
 // Wait will enqueue
 func (q *Q) wait(here Tile) {
 	// Will this lack of pointing to references lead to a frontline issue?
-	q.frontLine = append(q.frontline, here)
+	*q.fifo = append(*q.fifo, here)
 }
 
 type LayerClusterMap map[int][]Cluster
