@@ -1,6 +1,7 @@
 package challenge_test
 
 import (
+	"crypto/rand"
 	"strconv"
 	"strings"
 	"testing"
@@ -117,13 +118,13 @@ func TestBlackBoxKnownResults(t *testing.T) {
 
 func TestMatrixOperations(t *testing.T) {
 	var mat = challenge.BasicMatrix([][]int{
-		[]int{1, 7, 7, 7, 7, 7, 3},
-		[]int{4, 1, 1, 1, 2, 1, 4},
-		[]int{3, 1, 1, 1, 2, 1, 5},
-		[]int{5, 1, 1, 2, 2, 1, 7},
-		[]int{5, 2, 8, 8, 1, 1, 8},
-		[]int{3, 1, 1, 4, 1, 1, 4},
-		[]int{5, 5, 5, 5, 5, 5, 8},
+		{1, 7, 7, 7, 7, 7, 3},
+		{4, 1, 1, 1, 2, 1, 4},
+		{3, 1, 1, 1, 2, 1, 5},
+		{5, 1, 1, 2, 2, 1, 7},
+		{5, 2, 8, 8, 1, 1, 8},
+		{3, 1, 1, 4, 1, 1, 4},
+		{5, 5, 5, 5, 5, 5, 8},
 	})
 
 	t.Log(mat)
@@ -138,7 +139,6 @@ func TestSingleSolution(t *testing.T) {
 	5 2 8 8 1 1 8
 	3 1 1 4 1 1 4
 	5 5 5 5 5 5 8`)
-
 	var filledMatrixDefinition = strings.NewReader(
 		`1 7 7 7 7 7 3
 4 3 3 3 3 3 4
@@ -147,6 +147,7 @@ func TestSingleSolution(t *testing.T) {
 5 3 8 8 3 3 8
 3 3 3 4 3 3 4
 5 5 5 5 5 5 8`)
+
 	var s scanner.Scanner
 	s.Init(filledMatrixDefinition)
 
@@ -161,11 +162,24 @@ func TestSingleSolution(t *testing.T) {
 	t.Log(problemDefinition)
 }
 
+type randNumberScanner int
+
+func (r randNumberScanner) NextInt() int {
+	var c = 1
+	var randBytes = make([]byte, c)
+	_, err := rand.Read(randBytes)
+	if err != nil {
+		return 0
+	}
+	return int(randBytes[0])
+}
+
 func TestVeryLargeAndRandom(t *testing.T) {
 	var theBigBound = 500
 	var theOtherBigBound = 200
 
-	var veryLargeMatt *Matrix = NewMatrix(randomIntSeries(theBigBound * theOtherBigBound))
+	var veryLargeMatt challenge.Matrix = *challenge.InitMatrix(theBigBound, theOtherBigBound)
+	veryLargeMatt.Fill(randNumberScanner(theBigBound * theOtherBigBound))
 
 	t.Log(veryLargeMatt.Total())
 	// Now we have no way to verify
