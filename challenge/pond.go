@@ -52,22 +52,22 @@ func (orderedMap LayerTileMap) Keys() []int {
 
 // Q.ueue of Tiles found via the BFS method on the prestructured data (e.g. Matrix, graph)
 type Q struct {
-	frontLine *[]Tile
+	fifo *[]Tile
 }
 
 // Serve will bring the next Tile out from a wait state
 func (q *Q) serve() Tile {
 	const outOfRange = -MaxMapSize
-	const errorTile = Tile{outOfRange, outOfRange}
-	var lenQ = len(*(*q).frontline) // This number appears several times locally
+	var errorTile = Tile{outOfRange, outOfRange}
+	var lenQ = len(*(*q).fifo) // This number appears several times locally
 
 	// cannot return a Tile, error condition
 	if lenQ <= 0 {
 		return errorTile
 	}
 
-	beingServed = *(*q.frontline)[0]
-	*q.frontline = *(*q.frontline)[1:]
+	var beingServed Tile = (*q.fifo)[0]
+	*q.fifo = (*q.fifo)[1:]
 
 	return beingServed
 }
