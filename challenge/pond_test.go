@@ -132,21 +132,21 @@ func TestMatrixOperations(t *testing.T) {
 
 func TestSingleSolution(t *testing.T) {
 	var problemDefinition = strings.NewReader(`7 7
-	1 7 7 7 7 7 3
-	4 1 1 1 2 1 4
-	3 1 1 1 2 1 5
-	5 1 1 2 2 1 7
-	5 2 8 8 1 1 8
-	3 1 1 4 1 1 4
-	5 5 5 5 5 5 8`)
+		1 7 7 7 7 7 3
+		4 1 1 1 2 1 4
+		3 1 1 1 2 1 5
+		5 1 1 2 2 1 7
+		5 2 8 8 1 1 8
+		3 1 1 4 1 1 4
+		5 5 5 5 5 5 8`)
 	var filledMatrixDefinition = strings.NewReader(
 		`1 7 7 7 7 7 3
-4 3 3 3 3 3 4
-3 3 3 3 3 3 5
-5 3 3 3 3 3 7
-5 3 8 8 3 3 8
-3 3 3 4 3 3 4
-5 5 5 5 5 5 8`)
+		4 3 3 3 3 3 4
+		3 3 3 3 3 3 5
+		5 3 3 3 3 3 7
+		5 3 8 8 3 3 8
+		3 3 3 4 3 3 4
+		5 5 5 5 5 5 8`)
 
 	var s scanner.Scanner
 	s.Init(filledMatrixDefinition)
