@@ -1,6 +1,7 @@
 package challenge_test
 
 import (
+	"strconv"
 	"strings"
 	"testing"
 	"text/scanner"
@@ -42,24 +43,65 @@ func TestInitAndFillMatrix(t *testing.T) {
 	}
 }
 
+type scannerForTestBlackBoxKnownResults struct {
+	src []string
+}
+
+func (scanner scannerForTestBlackBoxKnownResults) NextInt() int {
+	if len(scanner.src) < 1 {
+		return -1 // Indicate no more Int remain, yes there's a better way to handle this. Throwing error perhaps.
+	}
+
+	var Next string = scanner.src[0]
+	// Move forward the scanner for the next call
+	scanner.src = scanner.src[1:]
+
+	NextInt, err := strconv.Atoi(Next)
+
+	if err != nil {
+		return -2 // Oh my, that's not right either. Log this instead.
+	}
+	return NextInt
+}
+
 func TestBlackBoxKnownResults(t *testing.T) {
+	var makeScanner = func(rowsOfSpaceDelimCols []string) scannerForTestBlackBoxKnownResults {
+		var continuousInput = make([]string, 0)
+
+		for _, row := range rowsOfSpaceDelimCols {
+			// In a row, there's some cols separated by spacing
+			for spaceAt := strings.Index(row, " "); spaceAt >= 0; spaceAt = strings.Index(row, " ") {
+				continuousInput = append(continuousInput, row[0:spaceAt]) // grab the prefix in front of space
+				row = row[spaceAt+1:]                                     // Cut the prefix and space
+			}
+		}
+
+		return scannerForTestBlackBoxKnownResults{src: continuousInput}
+	}
+
 	// Set up some maps
 	// Calculate their counterpart
 	// Compare them using Matrix Subtraction, a feature we could certainly improve on LATER
 	// Return total totalSum of water
 	MattBefore := *challenge.InitMatrix(4, 3)
 	MattBefore.Fill(
-		"3 3 3",
-		"3 1 3",
-		"3 1 3",
-		"3 3 3",
+		makeScanner(
+			[]string{"3 3 3",
+				"3 1 3",
+				"3 1 3",
+				"3 3 3",
+			},
+		),
 	)
 	MattAfter := *challenge.InitMatrix(4, 3)
 	MattAfter.Fill(
-		"3 3 3",
-		"3 3 3",
-		"3 3 3",
-		"3 3 3",
+		makeScanner(
+			[]string{"3 3 3",
+				"3 3 3",
+				"3 3 3",
+				"3 3 3",
+			},
+		),
 	)
 	var totalSumDifference int = MattAfter.Total() - MattBefore.Total()
 
