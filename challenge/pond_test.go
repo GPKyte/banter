@@ -103,28 +103,15 @@ func TestBlackBoxKnownResults(t *testing.T) {
 			},
 		),
 	)
+	var maxHeightAroundCluster = 3
+	MattBefore.Set(1, 1, maxHeightAroundCluster)
+	MattBefore.Set(2, 1, maxHeightAroundCluster)
+
 	var totalSumDifference int = MattAfter.Total() - MattBefore.Total()
-
-	TravisAfter := MattAfter.Traverse()
-	TravisBefore := MattBefore.Traverse()
-	traversals := MattAfter.Size()
-	if traversals != MattBefore.Size() {
-		t.Log("Before and After Matrices are incongruent because the sizes differ. See below:")
-		t.Log(MattBefore)
-		t.Log(MattAfter)
-	}
-
-	manualSum := 0
-	expectedVolumeOrTotalSumOfDifference := (3 /*after*/ - 1 /*before*/) * 2 /*times*/
-	for i := 0; i < traversals; i++ {
-		manualSum += TravisAfter.Now() - TravisBefore.Now()
-		TravisAfter.Next()
-		TravisBefore.Next()
-	}
-
-	if manualSum != expectedVolumeOrTotalSumOfDifference || manualSum != totalSumDifference {
+	var expectedVolumeOrTotalSumOfDifference int = (3 /*after*/ - 1 /*before*/) * 2 /*times*/
+	if expectedVolumeOrTotalSumOfDifference != totalSumDifference {
 		t.Fail()
-		t.Log("Expected %v, but found %v and %v instead", expectedVolumeOrTotalSumOfDifference, manualSum, totalSumDifference)
+		t.Log("Expected %v, but found %v instead", expectedVolumeOrTotalSumOfDifference, totalSumDifference)
 	}
 }
 
