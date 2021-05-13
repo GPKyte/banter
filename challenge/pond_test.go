@@ -34,7 +34,7 @@ func TestInitAndFillMatrix(t *testing.T) {
 
 	if (*MattG).Total() != expectedTotal {
 		t.Fail()
-		t.Logf("TestI...FillMatrices: Expected %v, but was %v.", expectedTotal != (*MattG).Total())
+		t.Logf("TestI...FillMatrices: Expected %v, but was %v.", expectedTotal, (*MattG).Total())
 		t.Log(*MattG)
 	}
 	if (*MattG).Get(2, 4) != goal[2*4] {
@@ -112,7 +112,7 @@ func TestBlackBoxKnownResults(t *testing.T) {
 	var expectedVolumeOrTotalSumOfDifference int = (3 /*after*/ - 1 /*before*/) * 2 /*times*/
 	if expectedVolumeOrTotalSumOfDifference != totalSumDifference {
 		t.Fail()
-		t.Log("Expected %v, but found %v instead", expectedVolumeOrTotalSumOfDifference, totalSumDifference)
+		t.Logf("Expected %v, but found %v instead", expectedVolumeOrTotalSumOfDifference, totalSumDifference)
 	}
 }
 
