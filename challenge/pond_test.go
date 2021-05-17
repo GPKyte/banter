@@ -178,7 +178,7 @@ func TestVeryLargeAndRandom(t *testing.T) {
 	var theBigBound = 500
 	var theOtherBigBound = 200
 
-	var veryLargeMatt challenge.Matrix = *challenge.InitMatrix(theBigBound, theOtherBigBound)
+	var veryLargeMatt challenge.Matrix = challenge.InitMatrix(theBigBound, theOtherBigBound)
 	veryLargeMatt.Fill(randNumberScanner(theBigBound * theOtherBigBound))
 
 	t.Log(veryLargeMatt.Total())
