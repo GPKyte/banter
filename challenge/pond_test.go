@@ -48,7 +48,7 @@ type scannerForTestBlackBoxKnownResults struct {
 	src []string
 }
 
-func (scanner scannerForTestBlackBoxKnownResults) NextInt() int {
+func (scanner *scannerForTestBlackBoxKnownResults) NextInt() int {
 	if len(scanner.src) < 1 {
 		return -1 // Indicate no more Int remain, yes there's a better way to handle this. Throwing error perhaps.
 	}
@@ -66,7 +66,7 @@ func (scanner scannerForTestBlackBoxKnownResults) NextInt() int {
 }
 
 func TestBlackBoxKnownResults(t *testing.T) {
-	var makeScanner = func(rowsOfSpaceDelimCols []string) scannerForTestBlackBoxKnownResults {
+	var makeScanner = func(rowsOfSpaceDelimCols []string) *scannerForTestBlackBoxKnownResults {
 		var continuousInput = make([]string, 0)
 
 		for _, row := range rowsOfSpaceDelimCols {
@@ -77,7 +77,7 @@ func TestBlackBoxKnownResults(t *testing.T) {
 			}
 		}
 
-		return scannerForTestBlackBoxKnownResults{src: continuousInput}
+		return &scannerForTestBlackBoxKnownResults{src: continuousInput}
 	}
 
 	// Set up some maps
@@ -113,6 +113,8 @@ func TestBlackBoxKnownResults(t *testing.T) {
 	if expectedVolumeOrTotalSumOfDifference != totalSumDifference {
 		t.Fail()
 		t.Logf("Expected %v, but found %v instead", expectedVolumeOrTotalSumOfDifference, totalSumDifference)
+		t.Log(MattBefore)
+		t.Log(MattAfter)
 	}
 }
 
