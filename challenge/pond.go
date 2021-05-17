@@ -101,10 +101,10 @@ type Tile struct {
 // FindAdjacent wraps the behavior of navigating tiles.
 func FindAdjacent(t Tile) []Tile {
 	neighborDirections := map[string]Tile{
-		"north": Tile{-1, 0},
-		"east":  Tile{0, 1},
-		"west":  Tile{0, -1},
-		"south": Tile{1, 0},
+		"north": {-1, 0},
+		"east":  {0, 1},
+		"west":  {0, -1},
+		"south": {1, 0},
 	}
 
 	neighbors := make([]Tile, 0, 4)
