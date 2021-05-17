@@ -117,11 +117,11 @@ func FindAdjacent(t Tile) []Tile {
 	return neighbors
 }
 
-func FindCluster(t Tile, lookup TerrainMap) Cluster {
+func FindCluster(t Tile, lookup Matrix) Cluster {
 	var maybeLeaky bool = false
 	var members = make([]Tile, 0)
 	var height = func(t Tile) int {
-		return lookup.terrain.Get(t.rowCoordinate, t.colCoordinate)
+		return lookup.Get(t.rowCoordinate, t.colCoordinate)
 	}
 
 	// Traverse neighbors of tile
@@ -259,6 +259,28 @@ func (s StdNumberScanner) NextInt() int {
 	return num
 }
 
+// ClusterTogether connectedTiles from the given Tiles based on adjacency
+// Clusters are Useful for addressing several connected Tiles
+func clusterTogether(unClustered []Tile, src Matrix) []Cluster {
+	var clusters = make([]Cluster, 0)
+	var alreadyClustered map[Tile]bool
+
+	for _, thisTile := range unClustered {
+
+		if alreadyClustered[thisTile] { // Short-circuit
+			continue
+		}
+
+		c := FindCluster(thisTile, src) // This step could add Tiles that weren't passed as argument.
+		clusters = append(clusters, c)
+
+		for _, t := range c.Members {
+			alreadyClustered[t] = true // Short-circuit step
+		}
+	}
+	return clusters
+}
+
 // SingleSolution takes a problem definition via the input parameter.
 // Given the dimensions of a numerical matrix, and the numbers to fill it,
 // Return the expected volume of water which would be trapped in a landscape
@@ -308,27 +330,15 @@ func SingleSolution(input io.Reader) int {
 			maxHeight = newHeightValue
 		}
 	}
-
+	var tm TerrainMap = TerrainMap{matt, tilesByHeight}
 	// A layer includes connected tiles of the same current height
 	// A cluster *could* have different height tiles by design, but is intended for height-differentiation.
 	//	 A cluster *could* alternatively grow upward instead, but this is not preferred
 	var recordClustersPerLayer LayerClusterMap // Store found clusters here by height
 	// Use Breadth first search, BFS, to find a cluster whilst we record the min height of the perimeter.
 	// Start the BFS from the lowest height, tiles at minHeight
-
 	for iHeight := minHeight; iHeight < maxHeight; iHeight++ {
-		// Every tile at this height is either at it's original height or was promoted to this height
-		// Every tile at this height is either connected to at least one tile of lesser height or none
-
-		// Knowing this layer's clusters is helpful because the perimeter of a cluster decides
-		//	whether or not the entire cluster of tiles stays the same height or is raised by the "rain water"
-		recordClustersPerLayer[iHeight] = clusterTogether(tilesByHeight[iHeight], matt)
-		for _, cluster := range recordClustersPerLayer[iHeight] {
-			if cluster.retainsRainWater() {
-				// Promote tiles by raising them to next layer
-				tilesByHeight[iHeight+1] = append(tilesByHeight[iHeight+1], cluster.Members...)
-			}
-		}
+		recordClustersPerLayer[iHeight] = clusterTogether(tilesByHeight[iHeight], tm.terrain)
 	}
 
 	// TODO share the top-height value among cluster members, and update it on the fly.
