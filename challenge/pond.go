@@ -192,6 +192,16 @@ func (m *BasicMatrix) Fill(src NumberScanner) {
 	}
 }
 
+func (m *BasicMatrix) Total() int {
+	var sum int
+	for i := 0; i < len(*m); i++ {
+		for ii := 0; ii < len((*m)[i]); ii++ {
+			sum += m.Get(i, ii)
+		}
+	}
+	return sum
+}
+
 // Equals referenes deep values
 func (one *BasicMatrix) Equals(another *Matrix) bool {
 	// Use the one BasicMatrix and the API of Matrix to find equality by catching OOB error over ther other Matrix
@@ -281,7 +291,8 @@ func SingleSolution(input io.Reader) int {
 
 	// Build a matrix describing a landscape with the saved numbers from SECTION 210 H
 	// TODO Decide whether it's necessary to build a copy matrix just so we can modify one matrix without concern
-	var matt Matrix = BasicMatrix(generateTwoDimArray(matrixHeight, matrixWidth))
+	var bm BasicMatrix = BasicMatrix(generateTwoDimArray(matrixHeight, matrixWidth))
+	var matt Matrix = &bm
 	for iRow := 0; iRow < matrixHeight; iRow++ {
 		for iiCol := 0; iiCol < matrixWidth; iiCol++ {
 			recallHeight := saveNumbers[iRow*matrixWidth+iiCol]
