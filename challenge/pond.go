@@ -156,7 +156,7 @@ type Tile struct {
 
 // FindAdjacent wraps the behavior of navigating tiles.
 func FindAdjacent(t Tile) []Tile {
-	neighborDirections := map[string][]Tile{
+	neighborDirections := map[string]Tile{
 		"north": Tile{-1, 0},
 		"east":  Tile{0, 1},
 		"west":  Tile{0, -1},
@@ -167,7 +167,7 @@ func FindAdjacent(t Tile) []Tile {
 	for _, each := range neighborDirections {
 		row := t.rowCoordinate + each.rowCoordinate
 		col := t.colCoordinate + each.colCoordinate
-		neighbors = append(neigbors, Tile{row, col})
+		neighbors = append(neighbors, Tile{row, col})
 	}
 
 	return neighbors
