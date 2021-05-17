@@ -154,15 +154,17 @@ func FindCluster(t Tile, lookup TerrainMap) Cluster {
 	return Cluster{members, maybeLeaky, sameHeight}
 }
 
-// InitMatrix prepares a contiguous block of memory to serve as the underlying structure of a BasicMatrix and returns the address for the struct
-func InitMatrix(height, width int) *Matrix {
-	M := new(BasicMatrix)
+// InitMatrix prepares a contiguous block of memory
+// to serve as the underlying structure of a BasicMatrix
+// and returns the address for the struct
+func InitMatrix(height, width int) *BasicMatrix {
+	m := new(BasicMatrix)
 	contiguousBlock := make([]int, height*width)
 
 	for h := 0; h < height; h++ {
-		M.twoDimCollection[h] = contiguousBlock[width*h : width*(h+1)]
+		(*m)[h] = contiguousBlock[width*h : width*(h+1)]
 	}
-	return M
+	return m
 }
 
 // BasicMatrix is the Barebones implementation for trying the pond problem
