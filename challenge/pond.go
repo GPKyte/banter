@@ -162,7 +162,7 @@ func InitMatrix(height, width int) *BasicMatrix {
 	contiguousBlock := make([]int, height*width)
 
 	for h := 0; h < height; h++ {
-		(*m)[h] = contiguousBlock[width*h : width*(h+1)]
+		(*m) = append((*m), contiguousBlock[width*h:width*(h+1)])
 	}
 	return m
 }
