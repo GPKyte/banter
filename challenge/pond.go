@@ -93,62 +93,6 @@ func (c *Cluster) retainsRainWater() bool {
 	return !c.anyMemberLeaks
 }
 
-func clusterTogether(maybeConnected []Tile, indis Matrix) ([]Cluster, error) {
-	// Prefer error to quiet? Can I use validator on Matrix instead of this check? Perhaps TODO
-	if len(maybeConnected) == 0 || indis == nil {
-		return nil, fmt.Errorf("Tiles are a required argument. So is the Matrix. Try again.")
-	}
-	// Given the tiles above,
-	// Return the same tiles, but group any series of adjacent tiles together as a cluster.
-	// It is convenient to decide here whether the cluster is leaky or not. Granted, we are lacking needed information to do so.
-	var clusterHeight = indus.Get(maybeConnected[0].rowCoordinate, maybeConnected[0].colCoordinate)
-	var lookupAid map[Tile][]Tile
-	for _, seems := range maybeConnected {
-		lookupAid[seems] = make([]Tile, 0, len(maybeConnected)-1) // Prep work, these will be lost if redundancy exists. Might exist?
-	}
-
-	// Background daemon will determine if clusterIsLeaky or not
-	var maybeNeighbors chan Tile
-	var clusterIsLeaky bool = false // Until proven true
-	go func() {
-		var now = true
-		for now {
-			var maybeLower = <-maybeNeighbors
-			var heightMaybe = indis.Get(maybeLower.rowCoordinate, maybeLower.colCoordinate)
-			// Is this cluster leaky? Find out while we wait
-			if heightMaybe < clusterHeight {
-				clusterIsLeaky = true
-				break
-			}
-		}
-		// When does this close??
-	}()
-
-	// Look up the neighbors and build the adjacency map to determine connectivity relavent to cluster analysis
-	for _, maybe := range maybeConnected {
-		var may []Tile = lookupAid[maybe]   // Just an empty list to fill with neighbors that were found in the first cover loop
-		var be []Tile = FindAdjacent(maybe) // The neighbors of this input tile which need matched against the other input tiles
-
-		for _, bNeighbor := range be {
-			var matches bool
-			// Either the Tiles will be in both the input and the neighbor results, or just the latter
-			if len(lookupAid[bNeighbor]) != 0 {
-
-			}
-			// Recall we return Clusters, i.e. []Tiles + metadata
-			lookupAid[bNeighbor] = append(lookupAid[bNeighbor], maybe) // Add tile to neighbor
-			lookupAid[maybe] = append(lookupAid[maybe], bNeighbor)     // Add neighbor to tile
-		}
-
-		// share reference to the conjoined slices that store neighbors, still use append
-
-		//add matching neighbors to growing list, then append that to the matche's neighbor list?
-		// what holds the list of neighbors? Edges rather are kept looked up by each vertex's list of neighbors, bidirection is maintained.
-		// lookupAid[vertex] = []Tile
-	}
-	return nil, nil
-}
-
 type Tile struct {
 	rowCoordinate int
 	colCoordinate int
@@ -174,38 +118,40 @@ func FindAdjacent(t Tile) []Tile {
 }
 
 func FindCluster(t Tile, lookup TerrainMap) Cluster {
-	var leaky bool = false
+	var maybeLeaky bool = false
 	var members = make([]Tile, 0)
 	var height = func(t Tile) int {
-		return lookup.model.Get(t.rowCoordinate, t.col.Coordinate)
+		return lookup.terrain.Get(t.rowCoordinate, t.colCoordinate)
 	}
 
 	// Traverse neighbors of tile
 	// How will we avoid revisiting?
 	// A small map we discard later could do the trick
-	var visited map[Tile]bool
-	var queue = t.FindNeighbors()
+	var alreadyVisited map[Tile]bool
+	var queue = FindAdjacent(t)
 	var sameHeight = height(t)
 
+	// Here we explore immediate neighbors to the tile
+	// Same height tiles are added to the Queue to be considered in the cluster.
 	for len(queue) > 0 {
 		var qt = queue[0]
-		if visited[qt] {
+		if alreadyVisited[qt] {
 			continue
 		}
-		var this = height(qt)
 
+		var this = height(qt)
 		if this < sameHeight {
-			leaky = true
+			maybeLeaky = true
 		} else if this == sameHeight {
-			queue = queue.append(qt.FindNeighbors())
+			queue = append(queue, FindAdjacent(qt)...)
 			members = append(members, qt)
 		}
 
-		visited[qt] = true
-		queue = dropFirst(queue)
+		alreadyVisited[qt] = true
+		queue = queue[1:]
 	}
 
-	return Cluster{members, leaky}
+	return Cluster{members, maybeLeaky, sameHeight}
 }
 
 // InitMatrix prepares a contiguous block of memory to serve as the underlying structure of a BasicMatrix and returns the address for the struct
