@@ -15,7 +15,7 @@ type TestNumberScanner struct {
 	src []int
 }
 
-func (s TestNumberScanner) NextInt() int {
+func (s *TestNumberScanner) NextInt() int {
 	next := s.src[s.pos]
 	s.pos++
 	return next
@@ -29,7 +29,7 @@ func TestInitAndFillMatrix(t *testing.T) {
 	goal := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16}
 
 	MattG := challenge.InitMatrix(height, width)
-	(*MattG).Fill(TestNumberScanner{0, goal})
+	(*MattG).Fill(&TestNumberScanner{0, goal})
 	var expectedTotal int = 17 * 8
 
 	if (*MattG).Total() != expectedTotal {
@@ -37,9 +37,9 @@ func TestInitAndFillMatrix(t *testing.T) {
 		t.Logf("TestI...FillMatrices: Expected %v, but was %v.", expectedTotal, (*MattG).Total())
 		t.Log(*MattG)
 	}
-	if (*MattG).Get(2, 4) != goal[2*4] {
+	if (*MattG).Get(1, 3) != goal[2*4-1] {
 		t.Fail()
-		t.Logf("TestI...FillMatrices: Expected %v, But got %v", goal[2*4], (*MattG).Get(2, 4))
+		t.Logf("TestI...FillMatrices: Expected %v, But got %v", goal[2*4], (*MattG).Get(1, 3))
 		t.Log(*MattG)
 	}
 }
