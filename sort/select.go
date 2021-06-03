@@ -20,7 +20,7 @@ func SelectCommonMembers(numLists [][]int) []int {
 	var countUpMemberships = applyFuncToAll
 	countUpMemberships(memberLists, trackAssistant)
 
-	var commonMembers = make([]Member, 1) // Capacity...Max of the memberlists
+	var commonMembers = make([]Member, 0) // Capacity...Max of the memberlists
 	var saveAllCommonMembers = applyFuncToKeysWithMatchingValues
 	var saveAnyQualifiedMember = func(m Member, count int) {
 		if count == maxMemberships {

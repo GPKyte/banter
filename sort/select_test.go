@@ -54,6 +54,17 @@ func TestAllCommonMembers(t *testing.T) {
 
 	if len(everybody) != 3 {
 		t.Logf("Expected Only Common Members, found %d: %v", len(everybody), everybody)
+		t.Fail()
+	}
+
+	var justNobody []int = sort.SelectCommonMembers([][]int{
+		{0},
+		{0},
+		{0},
+	})
+
+	if len(justNobody) != 1 {
+		t.Logf("Expected Only Common Members, found %d: %v", len(justNobody), justNobody)
 		t.FailNow()
 	}
 }
