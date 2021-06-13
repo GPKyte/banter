@@ -117,15 +117,60 @@ func (qq *quickQueue) DeQ() *OTNode {
 	return thisBubble
 }
 
+func factorial(n int) int {
+	var fax int = 1
+
+	for i := n; i > 1; i-- {
+		fax *= i
+	}
+
+	return fax
+}
+
+// Permute the series into every possible same-length ordering.
+// Do to factorial nature of this operation, yield provides the output
+// Prefer channel rather than holding output in a buffer of O(N!) size
+func permute(series []int) (yield chan []int) {
+	// Generate all permutations of series
+	var path = make(quickStack, 0, len(series))
+	yield = make(chan []int, factorial(len(series)))
+
+	var doWorkThenCleanup = func() {
+		defer close(yield)
+		permuteRecursion(series, &path, yield)
+	}
+	go doWorkThenCleanup()
+
+	return yield
+}
+func permuteRecursion(partialSeries []int, path *quickStack, output chan []int) {
+	if len(partialSeries) < 1 {
+		var holdme []int = copyPermutation(path)
+		output <- holdme
+	}
+
+	for x := range partialSeries {
+		path.Push(partialSeries[x])
+		permuteRecursion(append(partialSeries[:x], partialSeries[x+1:]...), path, output)
+		path.Pop()
+	}
+}
+func copyPermutation(path *quickStack) []int {
+	var copy []int = make([]int, len(*path))
+
+	for each := range *path {
+		copy[each] = (*path)[each]
+	}
+	return copy
+}
+
 // main will test the build and traversal of the ordinal tree
 func main() {
-	var regularSequence = []int{1, 2, 3, 4, 5}
-	var otter *OrdinalTree = NewOrdinalTree(regularSequence)
-	var allOrderings = otter.Traverse()
+	var regularSequence = []int{1, 2, 3, 4, 9}
 
+	var allOrderings = permute(regularSequence)
 	for permutation, ok := <-allOrderings; ok; permutation, ok = <-allOrderings {
 		fmt.Println(permutation)
 	}
 
-	fmt.Println(*otter)
 }
