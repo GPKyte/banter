@@ -45,3 +45,56 @@ func TestPermuteYieldsWrongNumbers(t *testing.T) {
 		}
 	}
 }
+
+func TestStack(t *testing.T) {
+	var stack = make(quickStack, 0, 20)
+	t.Fail()
+
+	stack.Push(1) // .1 2 3 4 5
+	stack.Push(2) // .2 3 4 5
+	stack.Push(3) // .3 4 5
+	stack.Push(4) // .4 5
+	stack.Push(5) // .5
+	t.Log(copyPermutation(&stack))
+	stack.Pop()   //
+	stack.Pop()   // 5
+	stack.Push(5) // 4 .5
+	stack.Push(4) // .4
+	t.Log(copyPermutation(&stack))
+	stack.Pop()   //
+	stack.Pop()   // 4
+	stack.Pop()   // 4 5
+	stack.Push(4) // 3 .4 5
+	stack.Push(3) // .3 5
+	stack.Push(5) // .5
+	t.Log(copyPermutation(&stack))
+	stack.Pop()   //
+	stack.Pop()   // 5
+	stack.Push(5) // 3 .5
+	stack.Push(3) // .3
+	t.Log(copyPermutation(&stack))
+	stack.Pop()   //
+	stack.Pop()   // 3
+	stack.Pop()   // 3 5
+	stack.Pop()   // 3 4 5
+	stack.Push(3) // 2 .3 4 5
+	stack.Push(2) // .2 4 5
+	stack.Push(4) // .4 5
+	stack.Push(5) // .5
+	t.Log(copyPermutation(&stack))
+	stack.Pop()   //
+	stack.Pop()   // 5
+	stack.Push(5) // 4 .5
+	stack.Push(4) // .4
+	t.Log(copyPermutation(&stack))
+	stack.Pop()   //
+	stack.Pop()   // 4
+	stack.Pop()   // 4 5
+	stack.Push(4) // 2 .4 5
+	stack.Push(2) // .2 5
+	stack.Push(5) // .5
+	t.Log(copyPermutation(&stack))
+	stack.Pop() //
+	stack.Pop() // 5
+
+}
