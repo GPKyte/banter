@@ -19,25 +19,26 @@ func TestPermuteSizeChanges(t *testing.T) {
 		}
 	}
 }
+
+func sum(totalThis []int) int {
+	var total int = 0
+
+	for _, x := range totalThis {
+		total += x
+	}
+
+	return total
+}
 func TestPermuteYieldsWrongNumbers(t *testing.T) {
 	var series = []int{1, 2, 3, 4, 5}
+	var seriesSum = sum(series)
 	var allOrderings = permute(series)
 	var counter int = 0
-
-	var sum = func(totalThis []int) int {
-		var total int = 0
-
-		for _, x := range totalThis {
-			total += x
-		}
-
-		return total
-	}
 
 	for permutation, ok := <-allOrderings; ok; permutation, ok = <-allOrderings {
 		counter += 1
 
-		if sum(permutation) != sum(series) {
+		if sum(permutation) != seriesSum {
 			t.Logf("Permutation #%d is not an accurate permuation because the numbers differ from the series", counter)
 			t.Logf(" - Expected #%d to have the numbers %v, but had %v instead.", counter, series, permutation)
 			t.Fail()
