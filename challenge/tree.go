@@ -1,8 +1,6 @@
 package main
 
-import (
-	"fmt"
-)
+import "fmt"
 
 // Goal: Given a series of integers, build a Node-and-Pointer style tree, which
 // When traversed, produces all orderings of the given series.
@@ -135,25 +133,27 @@ func permute(series []int) (yield chan []int) {
 	var path = make(quickStack, 0, len(series))
 	yield = make(chan []int, factorial(len(series)))
 
+	// This wrapper allows recursion to kick off and then close without deadlock
 	var doWorkThenCleanup = func() {
 		defer close(yield)
-		permuteRecursion(series, &path, yield)
+		permuteRecursion(&path, yield, series...)
 	}
 	go doWorkThenCleanup()
 
 	return yield
 }
-func permuteRecursion(partialSeries []int, path *quickStack, output chan []int) {
+func permuteRecursion(path *quickStack, output chan []int, partialSeries ...int) {
 	if len(partialSeries) < 1 {
 		var holdme []int = copyPermutation(path)
 		output <- holdme
 	}
 
-	for x := range partialSeries {
+	for x, y := 0, len(partialSeries); x < y; x++ {
 		path.Push(partialSeries[x])
-		permuteRecursion(append(partialSeries[:x], partialSeries[x+1:]...), path, output)
-		path.Pop()
+		var removeOne = copySliceWithRemoval(partialSeries, x)
+		permuteRecursion(path, output, removeOne...)
 	}
+	path.Pop()
 }
 func copyPermutation(path *quickStack) []int {
 	var copy []int = make([]int, len(*path))
@@ -161,6 +161,18 @@ func copyPermutation(path *quickStack) []int {
 	for each := range *path {
 		copy[each] = (*path)[each]
 	}
+	return copy
+}
+func copySliceWithRemoval(from []int, remove int) []int {
+	copy := make([]int, 0, len(from)-1)
+
+	for each := range from {
+		if each == remove {
+			continue
+		}
+		copy = append(copy, from[each])
+	}
+
 	return copy
 }
 
