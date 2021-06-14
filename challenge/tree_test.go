@@ -5,8 +5,6 @@ import (
 )
 
 func TestBigPermutation(t *testing.T) {
-
-	t.FailNow()
 	var series = []int{9, 1, 2, 4, 7, 9, 0, 24, 645, 3675, 343, 356, 23, 267, 431}
 	var yieldPermutations = permute(series)
 	var expectedOutput int = factorial(len(series))

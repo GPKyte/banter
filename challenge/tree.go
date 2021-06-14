@@ -131,7 +131,7 @@ func factorial(n int) int {
 func permute(series []int) (yield chan []int) {
 	// Generate all permutations of series
 	var path = make(quickStack, 0, len(series))
-	yield = make(chan []int, factorial(len(series)))
+	yield = make(chan []int, 1024)
 
 	// This wrapper allows recursion to kick off and then close without deadlock
 	var doWorkThenCleanup = func() {
