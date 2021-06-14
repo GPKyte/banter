@@ -91,7 +91,7 @@ func (qs *quickStack) Pop() int {
 	var thisBubble int = DefaultBubble
 	var position = len(*qs)
 
-	if position > 1 {
+	if position >= 1 {
 		thisBubble = (*qs)[position-1]
 		*qs = (*qs)[:position-1]
 	}

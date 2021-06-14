@@ -50,6 +50,11 @@ func TestStack(t *testing.T) {
 	var stack = make(quickStack, 0, 20)
 	t.Fail()
 
+	stack.Push(9)
+	stack.Push(9)
+	stack.Pop()
+	stack.Pop()
+
 	stack.Push(1) // .1 2 3 4 5
 	stack.Push(2) // .2 3 4 5
 	stack.Push(3) // .3 4 5
