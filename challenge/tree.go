@@ -176,13 +176,22 @@ func copySliceWithRemoval(from []int, remove int) []int {
 	return copy
 }
 
+func scramble(word string, bySlice []int) string {
+	var scram = []byte(word)
+
+	for x, y := 0, len(scram); x < y; x++ {
+		scram[x] = word[bySlice[x]]
+	}
+
+	return string(scram)
+}
+
 // main will test the build and traversal of the ordinal tree
 func main() {
-	var regularSequence = []int{1, 2, 3, 4, 9}
+	var regularSequence = []int{0, 1, 2, 3, 4, 5, 6, 7}
 
 	var allOrderings = permute(regularSequence)
 	for permutation, ok := <-allOrderings; ok; permutation, ok = <-allOrderings {
-		fmt.Println(permutation)
+		fmt.Println(scramble("permuted", permutation))
 	}
-
 }
