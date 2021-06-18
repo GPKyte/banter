@@ -160,7 +160,7 @@ func TestModuloSliceInterpreter(t *testing.T) {
 	var dm = digitmodulo([]int{720, 120, 24, 6, 2, 1})
 
 	for eachOf := range expectations {
-		if reality := dm.Interpret(eachOf); unequal(expectations[eachOf], reality) {
+		if reality := dm.Interpret(eachOf); unequal(expectations[eachOf], *reality) {
 			t.Fail()
 			t.Logf("Did not meet expectation because %v is not %v", reality, expectations[eachOf])
 		}

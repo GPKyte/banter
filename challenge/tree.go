@@ -188,7 +188,7 @@ func scramble(word string, bySlice []int) string {
 
 type digitmodulo []int
 
-func (dm *digitmodulo) Interpret(original int) []int {
+func (dm *digitmodulo) Interpret(original int) *[]int {
 
 	var tion = make([]int, len((*dm)))
 	var og = int(original)
@@ -217,7 +217,8 @@ func (dm *digitmodulo) Interpret(original int) []int {
 		og -= thatmany * biggest
 	} // Repeat until biggest thing is also the smallest thing
 
-	return tion
+	return &tion
+}
 }
 // main will test the build and traversal of the ordinal tree
 func main() {
