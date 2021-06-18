@@ -125,3 +125,48 @@ func TestStack(t *testing.T) {
 	stack.Pop() //
 	stack.Pop() // 5
 }
+
+func TestFactSequence(t *testing.T) {
+	t.Fail()
+
+	factorialSequenceThing(5)
+}
+
+func TestModuloSliceInterpreter(t *testing.T) {
+	t.Fail()
+	var expectations = map[int][]int{
+		555: {0, 4, 3, 0, 1, 1}, // 0 480 72 0 2 1
+		1:   {0, 0, 0, 0, 0, 1},
+		800: {1, 0, 3, 1, 1, 0}, // 720 0 72 6 2 0
+	}
+
+	var unequal = func(pea []int, bea []int) bool {
+		if len(pea) != len(bea) {
+			return true
+		}
+
+		for index := len(pea) - 1; index > 0; index-- {
+			if pea[index] != bea[index] {
+				return true
+			}
+		}
+
+		return false
+	}
+	if !unequal([]int{1, 2, 4}, []int{1, 2, 3}) || unequal([]int{4, 4}, []int{4, 4}) {
+		t.Fail()
+		t.Log("Inequality matches incorrect.")
+	}
+
+	var dm = digitmodulo([]int{1, 2, 6, 24, 120, 720})
+
+	for eachOf := range expectations {
+		if reality := dm.Interpret(eachOf); unequal(expectations[eachOf], reality) {
+			t.Fail()
+			t.Logf("Did not meet expectation because %v is not %v", reality, expectations[eachOf])
+		}
+	}
+
+}
+
+// Goal: Learn how to build operator support for specific type, or specific interface
