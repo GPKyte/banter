@@ -186,6 +186,39 @@ func scramble(word string, bySlice []int) string {
 	return string(scram)
 }
 
+type digitmodulo []int
+
+func (dm *digitmodulo) Interpret(original int) []int {
+
+	var tion = make([]int, len((*dm)))
+	var og = int(original)
+
+	// Find the biggest thing that *fits*; until biggest thing is also the smallest thing possible: 1
+	for biggestplace := range *dm {
+		if og == 0 {
+			break
+		}
+		if (*dm)[biggestplace] > og {
+			continue
+		}
+
+		// Find how many biggest things *fit*
+		var biggest = (*dm)[biggestplace]
+		var thatmany int
+		for howmany := 0; biggest*howmany <= og; howmany += 1 {
+			thatmany = howmany // `thatmany` will lag behind `howmany` by one when og < the calculated divisor
+		}
+
+		// *Fit* that number in the right place
+		var rightplace = biggestplace
+		tion[rightplace] = thatmany
+
+		// Remove that many big things
+		og -= thatmany * biggest
+	} // Repeat until biggest thing is also the smallest thing
+
+	return tion
+}
 // main will test the build and traversal of the ordinal tree
 func main() {
 	var regularSequence = []int{0, 1, 2, 3, 4, 5, 6, 7}
