@@ -219,7 +219,36 @@ func (dm *digitmodulo) Interpret(original int) *[]int {
 
 	return &tion
 }
+
+func factorialSequenceThing(n int) {
+	upperbound := factorial(n)
+
+	// Want to see n slots, each counts where they are modulo
+	slots := make(digitmodulo, n, n)
+	for index := n - 1; index >= 0; index-- {
+		// Decending order of factorials results in the expected order for digitmodulo
+		slots[index] = factorial(n - index)
+	}
+
+	// Given 92736:
+	//  8! 7! 6! 5! 4!
+	// [2  2  2  4  4] Return
+
+	// Given 1,2,3,4,5,6
+	//	001 // 1!
+	//	010	// 2!
+	//	011	// 2! 1!
+	//	020	// 2!*2
+	//	021 // 2!*2 1!
+	//	100	// 3!
+
+	var output *[]int
+	for i := 0; i < upperbound; i++ {
+		output = slots.Interpret(i)
+		fmt.Println(*output)
+	}
 }
+
 // main will test the build and traversal of the ordinal tree
 func main() {
 	var regularSequence = []int{0, 1, 2, 3, 4, 5, 6, 7}
