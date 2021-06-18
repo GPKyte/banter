@@ -166,6 +166,19 @@ func TestModuloSliceInterpreter(t *testing.T) {
 		}
 	}
 
+	dm = digitmodulo([]int{100, 10, 1})
+	expectations = map[int][]int{
+		555: {5, 5, 5},
+		1:   {0, 0, 1},
+		800: {8, 0, 0},
+	}
+	for eachOf := range expectations {
+		if reality := dm.Interpret(eachOf); unequal(expectations[eachOf], *reality) {
+			t.Fail()
+			t.Logf("Did not meet expectation because %v is not %v", reality, expectations[eachOf])
+		}
+	}
+
 }
 
 // Goal: Learn how to build operator support for specific type, or specific interface
