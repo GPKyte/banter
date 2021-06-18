@@ -253,16 +253,15 @@ func factorialSequenceThing(n int) {
 func main() {
 	var regularSequence = []int{0, 1, 2, 3, 4, 5, 6, 7}
 	var counter int = 0
-	var fCounter int = 0
-	var lastFactorial int = 1
+	var specialCounter digitmodulo = make([]int, len(regularSequence))
+	for index := len(specialCounter) - 1; index >= 0; index-- {
+		// Decending order of factorials results in the expected order for digitmodulo
+		specialCounter[index] = factorial(len(specialCounter) - index)
+	}
 
 	var allOrderings = permute(regularSequence)
 	for permutation, ok := <-allOrderings; ok; permutation, ok = <-allOrderings {
+		fmt.Printf("%-10d: %3v: %3v\n", counter, permutation, *specialCounter.Interpret(counter))
 		counter += 1
-		if counter >= lastFactorial {
-			fCounter += 1
-			lastFactorial = factorial(fCounter)
-		}
-		fmt.Printf("%-10d: %3v: %5v %v\n", counter, permutation, lastFactorial, counter/(lastFactorial/fCounter))
 	}
 }
