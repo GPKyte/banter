@@ -133,7 +133,6 @@ func TestFactSequence(t *testing.T) {
 }
 
 func TestModuloSliceInterpreter(t *testing.T) {
-	t.Fail()
 	var expectations = map[int][]int{
 		555: {0, 4, 3, 0, 1, 1}, // 0 480 72 0 2 1
 		1:   {0, 0, 0, 0, 0, 1},
@@ -158,7 +157,7 @@ func TestModuloSliceInterpreter(t *testing.T) {
 		t.Log("Inequality matches incorrect.")
 	}
 
-	var dm = digitmodulo([]int{1, 2, 6, 24, 120, 720})
+	var dm = digitmodulo([]int{720, 120, 24, 6, 2, 1})
 
 	for eachOf := range expectations {
 		if reality := dm.Interpret(eachOf); unequal(expectations[eachOf], reality) {
