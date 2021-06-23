@@ -203,8 +203,8 @@ func (m *BasicMatrix) Total() int {
 }
 
 // Equals referenes deep values
-func (one *BasicMatrix) Equals(other Matrix) bool {
-	var other BasicMatrix = another.(BasicMatrix) // I love this line -GK
+func (one *BasicMatrix) Equals(another Matrix) bool {
+	var other BasicMatrix = *another.(*BasicMatrix) // I love this line -GK
 
 	if len(*one) != len(other) {
 		return false
