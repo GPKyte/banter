@@ -286,8 +286,8 @@ func clusterTogether(unClustered []Tile, src Matrix) []Cluster {
 // Return the expected volume of water which would be trapped in a landscape
 // 	described by the matrix. Refer to the file beginning for the details
 func SingleSolution(input io.Reader) int {
-	var problemDefinition *scanner.Scanner
-	problemDefinition.Init(input)
+	var problemDefinition *scanner.Scanner = &scanner.Scanner{}
+	problemDefinition = problemDefinition.Init(input)
 	var get = StdNumberScanner{From: problemDefinition}
 
 	var matrixHeight, matrixWidth int
