@@ -1,13 +1,14 @@
-package main
+package challenge_test
 
 import (
 	"testing"
-)
 
+	challenge "github.com/GPKyte/banter/challenge"
+)
 func TestBigPermutation(t *testing.T) {
 	var series = []int{9, 1, 2, 4, 7, 9, 0, 24, 645, 3675, 343, 356, 23, 267, 431}
-	var yieldPermutations = permute(series)
-	var expectedOutput int = factorial(len(series))
+	var yieldPermutations = challenge.Permute(series)
+	var expectedOutput int = challenge.Factorial(len(series))
 	var counter int = 0
 
 	var handleOutOfRange = func() {
@@ -30,7 +31,7 @@ func TestBigPermutation(t *testing.T) {
 
 func TestPermuteSizeChanges(t *testing.T) {
 	var series = []int{1, 2, 3, 4, 5}
-	var allOrderings = permute(series)
+	var allOrderings = challenge.Permute(series)
 	var counter int = 0
 
 	for permutation, ok := <-allOrderings; ok; permutation, ok = <-allOrderings {
@@ -56,7 +57,7 @@ func sum(totalThis []int) int {
 func TestPermuteYieldsWrongNumbers(t *testing.T) {
 	var series = []int{1, 2, 3, 4, 5}
 	var seriesSum = sum(series)
-	var allOrderings = permute(series)
+	var allOrderings = challenge.Permute(series)
 	var counter int = 0
 
 	for permutation, ok := <-allOrderings; ok; permutation, ok = <-allOrderings {
@@ -71,7 +72,7 @@ func TestPermuteYieldsWrongNumbers(t *testing.T) {
 }
 
 func TestStack(t *testing.T) {
-	var stack = make(quickStack, 0, 20)
+	var stack = make(challenge.QuickStack, 0, 20)
 
 	stack.Push(9)
 	stack.Push(9)
@@ -83,24 +84,24 @@ func TestStack(t *testing.T) {
 	stack.Push(3) // .3 4 5
 	stack.Push(4) // .4 5
 	stack.Push(5) // .5
-	t.Log(copyPermutation(&stack))
+	t.Log(challenge.CopyPermutation(&stack))
 	stack.Pop()   //
 	stack.Pop()   // 5
 	stack.Push(5) // 4 .5
 	stack.Push(4) // .4
-	t.Log(copyPermutation(&stack))
+	t.Log(challenge.CopyPermutation(&stack))
 	stack.Pop()   //
 	stack.Pop()   // 4
 	stack.Pop()   // 4 5
 	stack.Push(4) // 3 .4 5
 	stack.Push(3) // .3 5
 	stack.Push(5) // .5
-	t.Log(copyPermutation(&stack))
+	t.Log(challenge.CopyPermutation(&stack))
 	stack.Pop()   //
 	stack.Pop()   // 5
 	stack.Push(5) // 3 .5
 	stack.Push(3) // .3
-	t.Log(copyPermutation(&stack))
+	t.Log(challenge.CopyPermutation(&stack))
 	stack.Pop()   //
 	stack.Pop()   // 3
 	stack.Pop()   // 3 5
@@ -109,19 +110,19 @@ func TestStack(t *testing.T) {
 	stack.Push(2) // .2 4 5
 	stack.Push(4) // .4 5
 	stack.Push(5) // .5
-	t.Log(copyPermutation(&stack))
+	t.Log(challenge.CopyPermutation(&stack))
 	stack.Pop()   //
 	stack.Pop()   // 5
 	stack.Push(5) // 4 .5
 	stack.Push(4) // .4
-	t.Log(copyPermutation(&stack))
+	t.Log(challenge.CopyPermutation(&stack))
 	stack.Pop()   //
 	stack.Pop()   // 4
 	stack.Pop()   // 4 5
 	stack.Push(4) // 2 .4 5
 	stack.Push(2) // .2 5
 	stack.Push(5) // .5
-	t.Log(copyPermutation(&stack))
+	t.Log(challenge.CopyPermutation(&stack))
 	stack.Pop() //
 	stack.Pop() // 5
 }
@@ -129,7 +130,7 @@ func TestStack(t *testing.T) {
 func TestFactSequence(t *testing.T) {
 	t.Fail()
 
-	factorialSequenceThing(5)
+	challenge.FactorialSequenceThing(5)
 }
 
 func TestModuloSliceInterpreter(t *testing.T) {
@@ -157,7 +158,7 @@ func TestModuloSliceInterpreter(t *testing.T) {
 		t.Log("Inequality matches incorrect.")
 	}
 
-	var dm = digitmodulo([]int{720, 120, 24, 6, 2, 1})
+	var dm = challenge.DigitModulo([]int{720, 120, 24, 6, 2, 1})
 
 	for eachOf := range expectations {
 		if reality := dm.Interpret(eachOf); unequal(expectations[eachOf], *reality) {
@@ -166,7 +167,7 @@ func TestModuloSliceInterpreter(t *testing.T) {
 		}
 	}
 
-	dm = digitmodulo([]int{100, 10, 1})
+	dm = challenge.DigitModulo([]int{100, 10, 1})
 	expectations = map[int][]int{
 		555: {5, 5, 5},
 		1:   {0, 0, 1},
