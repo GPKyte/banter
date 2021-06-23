@@ -127,7 +127,7 @@ func FindCluster(t Tile, lookup Matrix) Cluster {
 	// Traverse neighbors of tile
 	// How will we avoid revisiting?
 	// A small map we discard later could do the trick
-	var alreadyVisited map[Tile]bool
+	var alreadyVisited = map[Tile]bool{}
 	var queue = FindAdjacent(t)
 	var sameHeight = height(t)
 
