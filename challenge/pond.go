@@ -7,6 +7,8 @@ import (
 	"text/scanner"
 )
 
+const OutOfBoundsHeight = 0
+
 type Matrix interface {
 	Get(int, int) int
 	Set(int, int, int)
@@ -172,7 +174,11 @@ type BasicMatrix [][]int
 
 // Get returns a value from the Tile at the coordinates given
 func (m *BasicMatrix) Get(row, col int) (value int) {
-	// Check boundaries ofcourse
+	// Check boundaries. Beyond the Matrix is defined as an endless expanse at the unchanging height of 0.
+	if row < 0 || col < 0 || row >= len(*m) || len(*m) <= 0 || col >= len((*m)[0]) {
+		return OutOfBoundsHeight
+	}
+
 	return (*m)[row][col]
 }
 
