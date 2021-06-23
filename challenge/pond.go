@@ -431,7 +431,7 @@ func (tv *TileVisitor) Visit(time Tile) (beenHereBefore bool) {
 
 func generateTwoDimArray(firstDim, secondDim int) [][]int {
 	var oneDim = make([]int, firstDim*secondDim)
-	var twoDim = make([][]int, 0, firstDim)
+	var twoDim = make([][]int, firstDim)
 	var slidingStart, slidingFinish int
 
 	for iFirst := 0; iFirst < firstDim; iFirst++ {
