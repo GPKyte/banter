@@ -1,4 +1,4 @@
-package main_test
+package challenge_test
 
 import (
 	"crypto/rand"
