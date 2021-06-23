@@ -11,7 +11,7 @@ type Matrix interface {
 	Get(int, int) int
 	Set(int, int, int)
 	Total() int
-	Equals(*Matrix) bool
+	Equals(Matrix) bool
 	Fill(NumberScanner)
 }
 
@@ -203,19 +203,28 @@ func (m *BasicMatrix) Total() int {
 }
 
 // Equals referenes deep values
-func (one *BasicMatrix) Equals(another *Matrix) bool {
-	// Use the one BasicMatrix and the API of Matrix to find equality by catching OOB error over ther other Matrix
+func (one *BasicMatrix) Equals(other Matrix) bool {
+	var other BasicMatrix = another.(BasicMatrix) // I love this line -GK
+
+	if len(*one) != len(other) {
+		return false
+	}
+	// Use the one BasicMatrix and the API of Matrix to find equality by catching OOB error over the other Matrix
 	for iCountdown := len(*one); iCountdown > 0; iCountdown-- {
+		if len((*one)[iCountdown]) != len(other[iCountdown]) {
+			return false
+		}
 		for iiCountdown := len((*one)[iCountdown]); iiCountdown > 0; iiCountdown-- {
 			this := (*one).Get(iCountdown, iiCountdown)
-			that := (*another).Get(iCountdown, iiCountdown)
+			that := (other).Get(iCountdown, iiCountdown)
 
 			if this != that {
 				return false
 			}
 		}
 	}
-	return true
+	// One Matrix and the other Matrix must share the same size, shape, and values.
+	return true // They are Equivalent
 }
 
 type NumberScanner interface {
