@@ -10,6 +10,50 @@ import (
 	"github.com/GPKyte/banter/challenge"
 )
 
+type testInterface interface {
+	Init(...int) testInterface
+}
+
+type testStruct struct {
+	a int
+}
+
+func (ts *testStruct) Init(abc ...int) testInterface {
+	ts.a = abc[0]
+	return ts
+}
+
+type Summable interface {
+	Add(Summable) Summable
+}
+
+type SimpleCollection []int
+
+func (sc SimpleCollection) Add(S Summable) Summable {
+	for i, v := range S.(SimpleCollection) {
+		if i >= len(sc) {
+			break
+		}
+		sc[i] += v
+	}
+	return sc
+}
+
+func TestSumthing(t *testing.T) {
+	var sc Summable = SimpleCollection([]int{8,1,12,14,18,20,22,})
+	sc = sc.Add(sc)
+	t.Fail()
+	t.Log(sc)
+}
+
+func TestTestInterface(t *testing.T) {
+	var ts testInterface = &testStruct{}
+	ts = ts.Init(1, 3, 5, 8)
+	ts = ts.Init(3, 5, 8)
+	t.Fail()
+	t.Log(ts)
+}
+
 type TestNumberScanner struct {
 	pos int
 	src []int
