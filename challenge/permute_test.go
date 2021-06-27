@@ -5,29 +5,6 @@ import (
 
 	"github.com/GPKyte/banter/challenge"
 )
-func TestBigPermutation(t *testing.T) {
-	var series = []int{9, 1, 2, 4, 7, 9, 0, 24, 645, 3675, 343, 356, 23, 267, 431}
-	var yieldPermutations = challenge.Permute(series)
-	var expectedOutput int = challenge.Factorial(len(series))
-	var counter int = 0
-
-	var handleOutOfRange = func() {
-		if something := recover(); something != nil {
-			t.Log(something)
-		}
-	}
-	defer handleOutOfRange()
-
-	for p, ok := <-yieldPermutations; ok; p, ok = <-yieldPermutations {
-		counter++
-		t.Log(p)
-	}
-
-	if counter != expectedOutput {
-		t.Fail()
-		t.Logf("Expected %d, Generated %d", expectedOutput, counter)
-	}
-}
 
 func TestPermuteSizeChanges(t *testing.T) {
 	var series = []int{1, 2, 3, 4, 5}
