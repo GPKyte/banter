@@ -188,7 +188,7 @@ func (m *BasicMatrix) Set(row, col, value int) {
 	(*m)[row][col] = value
 }
 
-// Fill a BasicMatric with Numbers until m full
+// Fill a BasicMatrix with Numbers until m full
 // Error check this process by confirming src NumberScanner returns EOF after this process if desired.
 func (m *BasicMatrix) Fill(src NumberScanner) {
 	for i := 0; i < len(*m); i++ {
