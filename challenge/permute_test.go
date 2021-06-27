@@ -3,7 +3,7 @@ package challenge_test
 import (
 	"testing"
 
-	challenge "github.com/GPKyte/banter/challenge"
+	"github.com/GPKyte/banter/challenge"
 )
 func TestBigPermutation(t *testing.T) {
 	var series = []int{9, 1, 2, 4, 7, 9, 0, 24, 645, 3675, 343, 356, 23, 267, 431}
