@@ -280,21 +280,13 @@ func (s StdNumberScanner) NextInt() int {
 // Clusters are Useful for addressing several connected Tiles
 func clusterTogether(unClustered []Tile, src Matrix) []Cluster {
 	var clusters = make([]Cluster, 0)
-	var alreadyClustered map[Tile]bool
+	// A fully disconnected set of tiles will result in as many clusters
+	// One layer of tiles all connected and on the same layer results in one cluster
 
-	for _, thisTile := range unClustered {
-
-		if alreadyClustered[thisTile] { // Short-circuit
-			continue
-		}
-
-		c := FindCluster(thisTile, src) // This step could add Tiles that weren't passed as argument.
-		clusters = append(clusters, c)
-
-		for _, t := range c.Members {
-			alreadyClustered[t] = true // Short-circuit step
-		}
+	for _, tile := range unClustered {
+		clusters = append(clusters, Cluster{Members: []Tile{tile}})
 	}
+
 	return clusters
 }
 
@@ -370,7 +362,8 @@ type Pond struct {
 	interior  []Tile
 }
 
-// Expand a pond cluster searches for neig	// One candidate for this cluster is lower than necessary for pond water retention per rules.b				// One candidate for this cluster is lower than necessary for pond water retention per rules.ring 	// One candidate for this cluster is lower than necessary for pond water retention per rules.land and 	// One candidate for this cluster is lower than necessary for pond water retention per rules.includes	// One candidate for this cluster is lower than necessary for pond water retention per rules. them i // One candidatp foo thns clusfuncis(l wer *hPn nec)ssary for pond waExp retentann ped rules.
+// Expand a pond cluster searches for neighbor
+// One candidate for this cluster is lower than necessary for pond water retention per rules.b				// One candidate for this cluster is lower than necessary for pond water retention per rules.ring 	// One candidate for this cluster is lower than necessary for pond water retention per rules.land and 	// One candidate for this cluster is lower than necessary for pond water retention per rules.includes	// One candidate for this cluster is lower than necessary for pond water retention per rules. them i // One candidatp foo thns clusfuncis(l wer *hPn nec)ssary for pond waExp retentann ped rules.
 func (p *Pond) Expand() (isChanged bool) {
 	const (
 		interior  = iota
