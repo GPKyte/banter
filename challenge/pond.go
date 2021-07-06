@@ -184,8 +184,10 @@ func (m *BasicMatrix) Get(row, col int) (value int) {
 
 // Set the value for the Tile at the coordinates given to the value given
 func (m *BasicMatrix) Set(row, col, value int) {
-	// Check boundaries ofcourse
-	(*m)[row][col] = value
+	// Check boundaries
+	if row < len(*m) && col < len((*m)[0]) && row >= 0 && col >= 0 {
+		(*m)[row][col] = value
+	}
 }
 
 // Fill a BasicMatrix with Numbers until m full
