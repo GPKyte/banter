@@ -282,11 +282,7 @@ func clusterTogether(unClustered []Tile, src Matrix) []Cluster {
 	var clusters = make([]Cluster, 0)
 	// A fully disconnected set of tiles will result in as many clusters
 	// One layer of tiles all connected and on the same layer results in one cluster
-
-	for _, tile := range unClustered {
-		clusters = append(clusters, Cluster{Members: []Tile{tile}})
-	}
-
+	var friend Visitor = &BasicVisitor{history: map[interface{}]bool{}}
 	return clusters
 }
 
@@ -407,24 +403,24 @@ func (p *Pond) Expand() (isChanged bool) {
 
 // Visitor is an interface to wrap the Visit function needed now for matrix traversal
 type Visitor interface {
-	Visit() bool
+	Visit(interface{}) bool
 }
 
-// TileVisitor maintains a history of Tiles visited at every layer to assist navigation of tile neighbors
-type TileVisitor struct {
-	history map[Tile]bool
+// BasicVisitor maintains a history of Tiles visited at every layer to assist navigation of tile neighbors
+type BasicVisitor struct {
+	history map[interface{}]bool
 }
 
 // Visit a Tile to mark that area and avoid duplicate work later, this is a version of shortcircuiting in practice.
-func (tv *TileVisitor) Visit(time Tile) (beenHereBefore bool) {
+func (v *BasicVisitor) Visit(time interface{}) (beenHereBefore bool) {
 	// We know that we have not
 	beenHereBefore = false
 	// except...
-	if tv.history[time] {
+	if v.history[time] {
 		beenHereBefore = true
 	}
 
-	tv.history[time] = true
+	v.history[time] = true
 
 	// It may be useful to know whether we have
 	return beenHereBefore
