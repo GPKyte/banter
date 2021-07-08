@@ -40,7 +40,7 @@ func (sc SimpleCollection) Add(S Summable) Summable {
 }
 
 func TestSumthing(t *testing.T) {
-	var sc Summable = SimpleCollection([]int{8,1,12,14,18,20,22,})
+	var sc Summable = SimpleCollection([]int{8, 1, 12, 14, 18, 20, 22})
 	sc = sc.Add(sc)
 	t.Fail()
 	t.Log(sc)
@@ -196,16 +196,25 @@ func TestSingleSolution(t *testing.T) {
 
 	var s scanner.Scanner
 	s.Init(filledMatrixDefinition)
+	var goal = challenge.InitMatrix(7, 7)
+	(*goal).Fill(challenge.StdNumberScanner{From: &s})
 
-	var matt = challenge.InitMatrix(7, 7)
-	(*matt).Fill(challenge.StdNumberScanner{From: &s})
+	var startingPointDefinition = strings.NewReader(
+		`1 7 7 7 7 7 3
+		4 1 1 1 2 1 4
+		3 1 1 1 2 1 5
+		5 1 1 2 2 1 7
+		5 2 8 8 1 1 8
+		3 1 1 4 1 1 4
+		5 5 5 5 5 5 8`)
+	var startingPoint = challenge.InitMatrix(7, 7)
+	s.Init(startingPointDefinition)
+	startingPoint.Fill(challenge.StdNumberScanner{From: &s})
 
 	solution := challenge.SingleSolution(problemDefinition)
 
 	t.Fail()
-	t.Log(matt)
-	t.Log(solution)
-	t.Log(problemDefinition)
+	t.Logf("Expect the solution to be: %d, Found: %d", goal.Total()-startingPoint.Total(), solution)
 }
 
 type randNumberScanner int
@@ -228,6 +237,7 @@ func TestVeryLargeAndRandom(t *testing.T) {
 	veryLargeMatt.Fill(randNumberScanner(theBigBound * theOtherBigBound))
 
 	t.Log(veryLargeMatt.Total())
+	t.Log(veryLargeMatt)
 	// Now we have no way to verify
 	t.FailNow()
 }

@@ -349,10 +349,10 @@ func SingleSolution(input io.Reader) int {
 	var get = StdNumberScanner{From: problemDefinition}
 
 	var matrixHeight, matrixWidth int
-	/* Open this comment tag to not take height and width from scanner *
+	/* Open this comment tag to not take height and width from scanner */
 	matrixHeight = get.NextInt()
 	matrixWidth = get.NextInt()
-	/* Close this comment tag to force set Height and Width */
+	/* Close this comment tag to force set Height and Width
 	matrixHeight = 5
 	matrixWidth = 5
 	/**/
@@ -392,17 +392,31 @@ func SingleSolution(input io.Reader) int {
 	// A layer includes connected tiles of the same current height
 	// A cluster *could* have different height tiles by design, but is intended for height-differentiation.
 	//	 A cluster *could* alternatively grow upward instead, but this is not preferred
-	var recordClustersPerLayer LayerClusterMap // Store found clusters here by height
+	var recordClustersPerLayer LayerClusterMap = map[int][]Cluster{} // Store found clusters here by height
+	var volumeOfRainWater int
 	// Use Breadth first search, BFS, to find a cluster whilst we record the min height of the perimeter.
 	// Start the BFS from the lowest height, tiles at minHeight
 	for iHeight := minHeight; iHeight < maxHeight; iHeight++ {
 		recordClustersPerLayer[iHeight] = clusterTogether(tilesByHeight[iHeight], tm.terrain)
+
+		for _, each := range recordClustersPerLayer[iHeight] {
+			if each.anyMemberLeaks {
+				continue
+			}
+
+			var heightDifference int = 1
+			var fillHeight = each.height + heightDifference
+			for _, tile := range each.Members {
+				tm.terrain.Set(tile.rowCoordinate, tile.colCoordinate, fillHeight)
+			}
+			volumeOfRainWater += heightDifference * len(each.Members)
+		}
 	}
 
 	// TODO share the top-height value among cluster members, and update it on the fly.
 
 	// TODO Find answer
-	var volumeOfRainWater int
+
 	return volumeOfRainWater
 }
 
