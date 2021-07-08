@@ -53,3 +53,27 @@ func TestLoopTillQEmpty(t *testing.T) {
 		t.Errorf("Count was %d", countMustBeFour)
 	}
 }
+
+func TestMiddle(t *testing.T) {
+	var middle = func(a, b, c int) int {
+		for combo := range Permute([]int{a, b, c}) {
+			if combo[0] >= combo[1] && combo[1] > combo[2] {
+				return combo[1]
+			}
+		}
+		return a
+	}
+	var tests = map[int][]int{
+		7: {7, 9, 6}, // a
+		2: {1, 2, 3}, // b
+		3: {8, 2, 3}, // c
+		5: {5, 5, 5}, // a,b,c
+	}
+
+	for mid, param := range tests {
+		result := middle(param[0], param[1], param[2])
+		if mid != result {
+			t.Errorf("Found %d in middle, but expected %d", result, mid)
+		}
+	}
+}

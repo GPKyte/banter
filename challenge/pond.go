@@ -288,6 +288,15 @@ func clusterTogether(unClustered []Tile, src Matrix) []Cluster {
 	// One layer of tiles all connected and on the same layer results in one cluster
 	var friend Visitor = &BasicVisitor{history: map[interface{}]bool{}}
 	var clusterLeaks bool = false
+	var shortestTallerNeighbor int
+	var middle = func(a, b, c int) int {
+		for combo := range Permute([]int{a, b, c}) {
+			if combo[0] >= combo[1] && combo[1] > combo[2] {
+				return combo[1]
+			}
+		}
+		return a
+	}
 	var height = func(t Tile) int {
 		return src.Get(t.rowCoordinate, t.colCoordinate)
 	}
@@ -299,7 +308,7 @@ func clusterTogether(unClustered []Tile, src Matrix) []Cluster {
 				clusterLeaks = true
 				continue
 			} else if height(each) > height(t) {
-				continue
+				shortestTallerNeighbor = middle(height(t), shortestTallerNeighbor, height(each))
 			} else if friend.Visit(each) {
 				continue
 			} else if height(each) == height(t) {
