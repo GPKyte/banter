@@ -26,3 +26,30 @@ func TestClusterTogether(t *testing.T) {
 		{rowCoordinate: 1, colCoordinate: 2},
 	}, batt))
 }
+
+func TestLoopTillQEmpty(t *testing.T) {
+	var example = []Tile{
+		{rowCoordinate: 1, colCoordinate: 1},
+		{rowCoordinate: 1, colCoordinate: 2},
+		{rowCoordinate: 2, colCoordinate: 1},
+		{rowCoordinate: 2, colCoordinate: 2},
+	}
+	var queueStorage = make([]Tile, 0, len(example))
+	var q Q = Q{fifo: &queueStorage}
+
+	q.wait(example[0])
+	q.wait(example[1])
+	q.wait(example[2])
+	q.wait(example[3])
+
+	var countMustBeFour = 0
+
+	for !q.empty() {
+		countMustBeFour += 1
+		t.Log(q.serve())
+	}
+
+	if countMustBeFour != 4 {
+		t.Errorf("Count was %d", countMustBeFour)
+	}
+}

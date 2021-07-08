@@ -80,6 +80,10 @@ func (q *Q) wait(here Tile) {
 	*q.fifo = append(*q.fifo, here)
 }
 
+func (q *Q) empty() bool {
+	return len(*q.fifo) == 0
+}
+
 type LayerClusterMap map[int][]Cluster
 
 type Cluster struct {
@@ -283,6 +287,46 @@ func clusterTogether(unClustered []Tile, src Matrix) []Cluster {
 	// A fully disconnected set of tiles will result in as many clusters
 	// One layer of tiles all connected and on the same layer results in one cluster
 	var friend Visitor = &BasicVisitor{history: map[interface{}]bool{}}
+	var clusterLeaks bool = false
+	var height = func(t Tile) int {
+		return src.Get(t.rowCoordinate, t.colCoordinate)
+	}
+	var queueStorage = make([]Tile, 0, len(unClustered))
+	var q Q = Q{fifo: &queueStorage}
+	var visitFriendsOf = func(t Tile) {
+		for _, each := range FindAdjacent(t) {
+			if height(each) < height(t) {
+				clusterLeaks = true
+				continue
+			} else if height(each) > height(t) {
+				continue
+			} else if friend.Visit(each) {
+				continue
+			} else if height(each) == height(t) {
+				q.wait(each)
+			}
+		}
+	}
+
+	for _, uc := range unClustered {
+		if friend.Visit(uc) {
+			continue
+		}
+		var buddies = make([]Tile, 0, len(unClustered))
+		buddies = append(buddies, uc)
+		friend.Visit(uc)
+		visitFriendsOf(uc)
+
+		for !q.empty() {
+			var mine = q.serve()
+			buddies = append(buddies, mine)
+			visitFriendsOf(mine)
+		}
+
+		var newCluster = Cluster{Members: buddies, anyMemberLeaks: clusterLeaks, height: height(uc)}
+		clusterLeaks = false
+		clusters = append(clusters, newCluster)
+	}
 	return clusters
 }
 
