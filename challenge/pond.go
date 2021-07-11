@@ -292,6 +292,11 @@ func clusterTogether(unClustered []Tile, src Matrix) []Cluster {
 // Return the expected volume of water which would be trapped in a landscape
 // 	 described by the matrix. Refer to the file beginning for the details
 func SingleSolution(input io.Reader) int {
+	tm := SetupPondProblem(input)
+	return SolvePondProblem(tm)
+}
+
+func SetupPondProblem(input io.Reader) TerrainMap {
 	var problemDefinition *scanner.Scanner = &scanner.Scanner{}
 	problemDefinition = problemDefinition.Init(input)
 	var get = StdNumberScanner{From: problemDefinition}
@@ -324,26 +329,18 @@ func SingleSolution(input io.Reader) int {
 		}
 	}
 
-	// Find max to decide when to stop searching later
-	var maxHeight int
-	var minHeight int = 0 // Per the problem definition, this could change
-	for _, newHeightValue := range saveNumbers {
-		if newHeightValue > maxHeight {
-			maxHeight = newHeightValue
-		}
-	}
-	var tm TerrainMap = TerrainMap{matt, tilesByHeight}
-	// A layer includes connected tiles of the same current height
-	// A cluster *could* have different height tiles by design, but is intended for height-differentiation.
-	//	 A cluster *could* alternatively grow upward instead, but this is not preferred
-	var recordClustersPerLayer LayerClusterMap = map[int][]Cluster{} // Store found clusters here by height
-	var volumeOfRainWater int
-	// Use Breadth first search, BFS, to find a cluster whilst we record the min height of the perimeter.
-	// Start the BFS from the lowest height, tiles at minHeight
-	for iHeight := minHeight; iHeight < maxHeight; iHeight++ {
-		recordClustersPerLayer[iHeight] = clusterTogether(tilesByHeight[iHeight], tm.terrain)
+	return TerrainMap{matt, tilesByHeight}
+}
 
-		for _, each := range recordClustersPerLayer[iHeight] {
+func SolvePondProblem(tm TerrainMap) (volumeOfRainWater int) {
+	var clustersForLayer LayerClusterMap = map[int][]Cluster{} // Layer each group of clusters by their height
+	/* Important to start from the bottom of terrain to simulate rain water filling land vessels like ponds and valleys.
+	   It is important because the next iteration will build on top of the previous layer */
+	for layz := range tm.layers.Keys() {
+
+		clustersForLayer[layz] = clusterTogether(tm.layers[layz], tm.terrain)
+
+		for _, each := range clustersForLayer[layz] {
 			if each.anyMemberLeaks {
 				continue
 			}
@@ -351,15 +348,12 @@ func SingleSolution(input io.Reader) int {
 			var heightDifference int = 1
 			var fillHeight = each.height + heightDifference
 			for _, tile := range each.Members {
+				// TODO share the top-height value among cluster members, and update it on the fly.
 				tm.terrain.Set(tile.rowCoordinate, tile.colCoordinate, fillHeight)
 			}
 			volumeOfRainWater += heightDifference * len(each.Members)
 		}
 	}
-
-	// TODO share the top-height value among cluster members, and update it on the fly.
-
-	// TODO Find answer
 
 	return volumeOfRainWater
 }
