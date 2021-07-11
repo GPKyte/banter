@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+	"strings"
 	"text/scanner"
 )
 
@@ -370,4 +371,16 @@ func generateTwoDimArray(firstDim, secondDim int) [][]int {
 	}
 
 	return twoDim
+}
+
+func (m *BasicMatrix) String() string {
+	var b strings.Builder
+	for _, row := range *m {
+		fmt.Fprintln(&b, row)
+	}
+	return b.String()
+}
+
+func (m *BasicMatrix) Visualize() {
+	fmt.Print(m.String())
 }

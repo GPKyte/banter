@@ -39,6 +39,27 @@ func (sc SimpleCollection) Add(S Summable) Summable {
 	return sc
 }
 
+func TestMatrixToString(t *testing.T) {
+	var matt = challenge.BasicMatrix{
+		{8, 1, 12, 14, 18, 20, 22},
+		{8, 1, 12, 14, 18, 20, 22},
+		{8, 1, 12, 14, 18, 20, 22},
+		{8, 1, 12, 14, 18, 20, 22},
+		{8, 1, 12, 14, 18, 20, 22},
+	}
+
+	var expectation string = `[8 1 12 14 18 20 22]
+[8 1 12 14 18 20 22]
+[8 1 12 14 18 20 22]
+[8 1 12 14 18 20 22]
+[8 1 12 14 18 20 22]
+`
+	if matt.String() != expectation {
+		t.Fail()
+		t.Log(matt.String())
+	}
+}
+
 func TestSumthing(t *testing.T) {
 	var sc Summable = SimpleCollection([]int{8, 1, 12, 14, 18, 20, 22})
 	sc = sc.Add(sc)
