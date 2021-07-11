@@ -22,15 +22,7 @@ type TerrainMap struct {
 	layers  LayerTileMap
 }
 
-type PondSolver struct {
-	model  TerrainMap
-	volume int
-}
-
 type LayerTileMap map[int][]Tile
-
-// MaxMapSize is an arbitrary limit
-const MaxMapSize = 99999
 
 // Keys are ordered ascending from 0.
 // From the problem scope we can say that Keys are greater than or equal to 0
@@ -45,29 +37,14 @@ func (orderedMap LayerTileMap) Keys() []int {
 	return keys
 }
 
-// What would finding the cluster of an area look like?
-// Say I look at Tile_0 from the input reel and it has two neighbors, Tile_01, Tile_02.
-// I found the neighbors via a helper function "FindAdjacent".
-// Tile_0 is a border tile in the upperleft corner of a Matrix or Terrain Map in this example.
-// Tile_0 is first into the Q, followed by 01 and 02, 01's neighbors 01a 01b 01c then 02's neighbors 02a 01b 02c
-// Exploring and revisiting these Tiles in a certain order via a Q affords well-known benefits from the BFS
-
-// Q.ueue of Tiles found via the BFS method on the prestructured data (e.g. Matrix, graph)
+// Q ueue of Tiles found via the BFS method on the prestructured data (e.g. Matrix, graph)
 type Q struct {
 	fifo *[]Tile
 }
 
 // Serve will bring the next Tile out from a wait state
 func (q *Q) serve() Tile {
-	const outOfRange = -MaxMapSize
-	var errorTile = Tile{outOfRange, outOfRange}
-	var lenQ = len(*(*q).fifo) // This number appears several times locally
-
-	// cannot return a Tile, error condition
-	if lenQ <= 0 {
-		return errorTile
-	}
-
+	// Choose to allow OOB to panic
 	var beingServed Tile = (*q.fifo)[0]
 	*q.fifo = (*q.fifo)[1:]
 
@@ -84,8 +61,6 @@ func (q *Q) empty() bool {
 	return len(*q.fifo) == 0
 }
 
-type LayerClusterMap map[int][]Cluster
-
 type Cluster struct {
 	Members        []Tile
 	anyMemberLeaks bool
@@ -97,6 +72,33 @@ func (c *Cluster) retainsRainWater() bool {
 	// Will need to find whether anyMemberLeaks by searching the perimeter beyond the cluster
 	// The cluster does not have access to this information so it must be decided elsewhere
 	return !c.anyMemberLeaks
+}
+
+type LayerClusterMap map[int][]Cluster
+
+// Visitor is an interface to wrap the Visit function needed now for matrix traversal
+type Visitor interface {
+	Visit(interface{}) bool
+}
+
+// BasicVisitor maintains a history of Tiles visited at every layer to assist navigation of tile neighbors
+type BasicVisitor struct {
+	history map[interface{}]bool
+}
+
+// Visit a Tile to mark that area and avoid duplicate work later, this is a version of shortcircuiting in practice.
+func (v *BasicVisitor) Visit(time interface{}) (beenHereBefore bool) {
+	// We know that we have not
+	beenHereBefore = false
+	// except...
+	if v.history[time] {
+		beenHereBefore = true
+	}
+
+	v.history[time] = true
+
+	// It may be useful to know whether we have
+	return beenHereBefore
 }
 
 type Tile struct {
@@ -123,41 +125,27 @@ func FindAdjacent(t Tile) []Tile {
 	return neighbors
 }
 
-func FindCluster(t Tile, lookup Matrix) Cluster {
-	var maybeLeaky bool = false
-	var members = make([]Tile, 0)
-	var height = func(t Tile) int {
-		return lookup.Get(t.rowCoordinate, t.colCoordinate)
+type NumberScanner interface {
+	NextInt() int
+}
+
+type StdNumberScanner struct {
+	From *scanner.Scanner
+}
+
+func (s StdNumberScanner) NextInt() int {
+	var tok = s.From.Scan() // Parse the next token, but token is not readily usable
+
+	if tok == scanner.EOF {
+		return 0
 	}
 
-	// Traverse neighbors of tile
-	// How will we avoid revisiting?
-	// A small map we discard later could do the trick
-	var alreadyVisited = map[Tile]bool{}
-	var queue = FindAdjacent(t)
-	var sameHeight = height(t)
-
-	// Here we explore immediate neighbors to the tile
-	// Same height tiles are added to the Queue to be considered in the cluster.
-	for len(queue) > 0 {
-		var qt = queue[0]
-		if alreadyVisited[qt] {
-			continue
-		}
-
-		var this = height(qt)
-		if this < sameHeight {
-			maybeLeaky = true
-		} else if this == sameHeight {
-			queue = append(queue, FindAdjacent(qt)...)
-			members = append(members, qt)
-		}
-
-		alreadyVisited[qt] = true
-		queue = queue[1:]
+	var num int
+	var err error
+	if num, err = strconv.Atoi(s.From.TokenText()); err != nil {
+		panic(fmt.Errorf("Only integers allowed in input. Received %v\n%v", s.From.TokenText(), err))
 	}
-
-	return Cluster{members, maybeLeaky, sameHeight}
+	return num
 }
 
 // InitMatrix prepares a contiguous block of memory
@@ -204,6 +192,7 @@ func (m *BasicMatrix) Fill(src NumberScanner) {
 	}
 }
 
+// Total is the sum of the heights recorded in the matrix
 func (m *BasicMatrix) Total() int {
 	var sum int
 	for i := 0; i < len(*m); i++ {
@@ -214,7 +203,7 @@ func (m *BasicMatrix) Total() int {
 	return sum
 }
 
-// Equals referenes deep values
+// Equals references deep values rather than identity
 func (one *BasicMatrix) Equals(another Matrix) bool {
 	var other BasicMatrix = *another.(*BasicMatrix) // I love this line -GK
 
@@ -237,47 +226,6 @@ func (one *BasicMatrix) Equals(another Matrix) bool {
 	}
 	// One Matrix and the other Matrix must share the same size, shape, and values.
 	return true // They are Equivalent
-}
-
-type NumberScanner interface {
-	NextInt() int
-}
-
-type AscendingNumberScanner int
-
-func (s AscendingNumberScanner) NextInt() int {
-	s += 1
-	return int(s) - 1
-}
-
-type DefaultNumberScanner struct {
-	pos int
-	src []int
-}
-
-func (s DefaultNumberScanner) NextInt() int {
-	next := s.src[s.pos]
-	s.pos++
-	return next
-}
-
-type StdNumberScanner struct {
-	From *scanner.Scanner
-}
-
-func (s StdNumberScanner) NextInt() int {
-	var tok = s.From.Scan() // Parse the next token, but token is not readily usable
-
-	if tok == scanner.EOF {
-		return 0
-	}
-
-	var num int
-	var err error
-	if num, err = strconv.Atoi(s.From.TokenText()); err != nil {
-		panic(fmt.Errorf("Only integers allowed in input. Received %v\n%v", s.From.TokenText(), err))
-	}
-	return num
 }
 
 // ClusterTogether connectedTiles from the given Tiles based on adjacency
@@ -342,7 +290,7 @@ func clusterTogether(unClustered []Tile, src Matrix) []Cluster {
 // SingleSolution takes a problem definition via the input parameter.
 // Given the dimensions of a numerical matrix, and the numbers to fill it,
 // Return the expected volume of water which would be trapped in a landscape
-// 	described by the matrix. Refer to the file beginning for the details
+// 	 described by the matrix. Refer to the file beginning for the details
 func SingleSolution(input io.Reader) int {
 	var problemDefinition *scanner.Scanner = &scanner.Scanner{}
 	problemDefinition = problemDefinition.Init(input)
@@ -352,10 +300,6 @@ func SingleSolution(input io.Reader) int {
 	/* Open this comment tag to not take height and width from scanner */
 	matrixHeight = get.NextInt()
 	matrixWidth = get.NextInt()
-	/* Close this comment tag to force set Height and Width
-	matrixHeight = 5
-	matrixWidth = 5
-	/**/
 
 	// If optimization needed for input, consider buffered reading rows of matrix
 	// Take this opportunity to build a layer map
@@ -418,79 +362,6 @@ func SingleSolution(input io.Reader) int {
 	// TODO Find answer
 
 	return volumeOfRainWater
-}
-
-type Pond struct {
-	perimeter []Tile
-	interior  []Tile
-}
-
-// Expand a pond cluster searches for neighbor
-// One candidate for this cluster is lower than necessary for pond water retention per rules.b				// One candidate for this cluster is lower than necessary for pond water retention per rules.ring 	// One candidate for this cluster is lower than necessary for pond water retention per rules.land and 	// One candidate for this cluster is lower than necessary for pond water retention per rules.includes	// One candidate for this cluster is lower than necessary for pond water retention per rules. them i // One candidatp foo thns clusfuncis(l wer *hPn nec)ssary for pond waExp retentann ped rules.
-func (p *Pond) Expand() (isChanged bool) {
-	const (
-		interior  = iota
-		perimeter = iota
-		exterior  = iota
-	)
-	var validation map[Tile]int
-	var needValidation []Tile
-	var newPerimeterCount int
-
-	for _, each := range p.interior {
-		// Do not add the interior to the exterior
-		validation[each] = interior
-	}
-	for _, per := range p.perimeter {
-		// When an adjacent tile is outside the pond, it is either in the perimeter or the exterior
-		// The exterior becomes the new perimeter
-		validation[per] = perimeter
-		needValidation = append(needValidation, FindAdjacent(per)...)
-	}
-	for _, needy := range needValidation {
-		// This step reduces redundant entries and helps filter
-		if validation[needy] != interior && validation[needy] != perimeter {
-			validation[needy] = exterior
-			newPerimeterCount++
-		}
-	}
-	// Now that we are shifting from old to new, include the old perimeter in the current interior
-	p.interior = append(p.interior, p.perimeter...) // And then,
-	p.perimeter = make([]Tile, 0, newPerimeterCount)
-
-	for tile, location := range validation {
-		// This step filters the explored tiles by their location
-		if location == exterior {
-			p.perimeter = append(p.perimeter, tile)
-		}
-	}
-
-	return false
-}
-
-// Visitor is an interface to wrap the Visit function needed now for matrix traversal
-type Visitor interface {
-	Visit(interface{}) bool
-}
-
-// BasicVisitor maintains a history of Tiles visited at every layer to assist navigation of tile neighbors
-type BasicVisitor struct {
-	history map[interface{}]bool
-}
-
-// Visit a Tile to mark that area and avoid duplicate work later, this is a version of shortcircuiting in practice.
-func (v *BasicVisitor) Visit(time interface{}) (beenHereBefore bool) {
-	// We know that we have not
-	beenHereBefore = false
-	// except...
-	if v.history[time] {
-		beenHereBefore = true
-	}
-
-	v.history[time] = true
-
-	// It may be useful to know whether we have
-	return beenHereBefore
 }
 
 func generateTwoDimArray(firstDim, secondDim int) [][]int {
