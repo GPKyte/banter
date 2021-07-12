@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
-	
+
 	"github.com/GPKyte/banter/challenge"
 )
 
@@ -31,17 +31,25 @@ func TestEfficientPermutation(t *testing.T) {
 
 func TestBigPermutation(t *testing.T) {
 	var series = []int{9, 1, 2, 4, 7, 9, 0, 24, 645, 3675, 343, 356, 23, 267, 431}
-	var yieldPermutations = permute(series)
-	var expectedOutput int = factorial(len(series))
+	var yieldPermutations = challenge.Permute(series)
+	var expectedOutputCount int = challenge.Factorial(len(series))
 	var counter int = 0
 
 	var handleOutOfRange = func() {
 		if something := recover(); something != nil {
-			t.Log(something)
+			t.Error(something.(string))
 		}
 	}
 	defer handleOutOfRange()
-)
+
+	for range yieldPermutations {
+		counter++
+	}
+
+	if expectedOutputCount != counter {
+		t.Error("Unexpected count of permuations was %d, but expected %d", counter, expectedOutputCount)
+	}
+}
 
 func TestPermuteSizeChanges(t *testing.T) {
 	var series = []int{1, 2, 3, 4, 5}
