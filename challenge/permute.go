@@ -1,14 +1,14 @@
-package main
+package challenge
 
 import "fmt"
 
-type quickStack []int
+type QuickStack []int
 
-func (qs *quickStack) Push(this int) {
+func (qs *QuickStack) Push(this int) {
 	*qs = append(*qs, this)
 }
 
-func (qs *quickStack) Pop() int {
+func (qs *QuickStack) Pop() int {
 	const DefaultBubble int = -1
 	var thisBubble int = DefaultBubble
 	var position = len(*qs)
@@ -21,7 +21,7 @@ func (qs *quickStack) Pop() int {
 	return thisBubble
 }
 
-func factorial(n int) int {
+func Factorial(n int) int {
 	var fax int = 1
 
 	for i := n; i > 1; i-- {
@@ -34,9 +34,9 @@ func factorial(n int) int {
 // Permute the series into every possible same-length ordering.
 // Do to factorial nature of this operation, yield provides the output
 // Prefer channel rather than holding output in a buffer of O(N!) size
-func permute(series []int) (yield chan []int) {
+func Permute(series []int) (yield chan []int) {
 	// Generate all permutations of series
-	var path = make(quickStack, 0, len(series))
+	var path = make(QuickStack, 0, len(series))
 	yield = make(chan []int, 1024)
 
 	// This wrapper allows recursion to kick off and then close without deadlock
@@ -48,9 +48,9 @@ func permute(series []int) (yield chan []int) {
 
 	return yield
 }
-func permuteRecursion(path *quickStack, output chan []int, partialSeries ...int) {
+func permuteRecursion(path *QuickStack, output chan []int, partialSeries ...int) {
 	if len(partialSeries) < 1 {
-		var holdme []int = copyPermutation(path)
+		var holdme []int = CopyPermutation(path)
 		output <- holdme
 	}
 
@@ -61,7 +61,7 @@ func permuteRecursion(path *quickStack, output chan []int, partialSeries ...int)
 	}
 	path.Pop()
 }
-func copyPermutation(path *quickStack) []int {
+func CopyPermutation(path *QuickStack) []int {
 	var copy []int = make([]int, len(*path))
 
 	for each := range *path {
@@ -92,9 +92,12 @@ func scramble(word string, bySlice []int) string {
 	return string(scram)
 }
 
-type digitmodulo []int
+// DigitModulo uses it's own sequence as the base for each digit,
+// ...The base 10 decimal system is a digit sequence whose bases (and DigitModulo) are represented by the slice: [10000, 10000, 1000, 100, 10, 1, 0.1, 0.01, 0.001]
+// Interpret(int) provides a sequence of digits by which to interpret a number
+type DigitModulo []int
 
-func (dm *digitmodulo) Interpret(original int) *[]int {
+func (dm *DigitModulo) Interpret(original int) *[]int {
 
 	var tion = make([]int, len((*dm)))
 	var og = int(original)
@@ -126,14 +129,14 @@ func (dm *digitmodulo) Interpret(original int) *[]int {
 	return &tion
 }
 
-func factorialSequenceThing(n int) {
-	upperbound := factorial(n)
+func FactorialSequenceThing(n int) {
+	upperbound := Factorial(n)
 
 	// Want to see n slots, each counts where they are modulo
-	slots := make(digitmodulo, n, n)
+	slots := make(DigitModulo, n, n)
 	for index := n - 1; index >= 0; index-- {
-		// Decending order of factorials results in the expected order for digitmodulo
-		slots[index] = factorial(n - index)
+		// Decending order of factorials results in the expected order for DigitModulo
+		slots[index] = Factorial(n - index)
 	}
 
 	// Given 92736:
@@ -159,13 +162,13 @@ func factorialSequenceThing(n int) {
 func main() {
 	var regularSequence = []int{0, 1, 2, 3, 4, 5, 6, 7}
 	var counter int = 0
-	var specialCounter digitmodulo = make([]int, len(regularSequence))
+	var specialCounter DigitModulo = make([]int, len(regularSequence))
 	for index := len(specialCounter) - 1; index >= 0; index-- {
-		// Decending order of factorials results in the expected order for digitmodulo
-		specialCounter[index] = factorial(len(specialCounter) - index)
+		// Decending order of factorials results in the expected order for DigitModulo
+		specialCounter[index] = Factorial(len(specialCounter) - index)
 	}
 
-	var allOrderings = permute(regularSequence)
+	var allOrderings = Permute(regularSequence)
 	for permutation, ok := <-allOrderings; ok; permutation, ok = <-allOrderings {
 		fmt.Printf("%-10d: %3v: %3v\n", counter, permutation, *specialCounter.Interpret(counter))
 		counter += 1
