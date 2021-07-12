@@ -11,7 +11,7 @@ import (
 func TestEfficientPermutation(t *testing.T) {
 	var series = []int{0, 1, 2, 3, 4, 5}
 	var bufferedOutput strings.Builder
-	var outstream chan string = permutePlus(series)
+	var outstream chan string = challenge.PermutePlus(series)
 	var counter int = 0
 	var bufferLimit = 1000
 
@@ -31,7 +31,7 @@ func TestEfficientPermutation(t *testing.T) {
 
 func TestBigPermutation(t *testing.T) {
 	var series = []int{9, 1, 2, 4, 7, 9, 0, 24, 645, 3675, 343, 356, 23, 267, 431}
-	var yieldPermutations = challenge.Permute(series)
+	var yieldPermutations = challenge.PermutePlus(series)
 	var expectedOutputCount int = challenge.Factorial(len(series))
 	var counter int = 0
 
@@ -47,7 +47,7 @@ func TestBigPermutation(t *testing.T) {
 	}
 
 	if expectedOutputCount != counter {
-		t.Error("Unexpected count of permuations was %d, but expected %d", counter, expectedOutputCount)
+		t.Errorf("Unexpected count of permuations was %d, but expected %d", counter, expectedOutputCount)
 	}
 }
 
