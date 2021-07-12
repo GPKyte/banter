@@ -1,6 +1,22 @@
 package challenge
 
-import "fmt"
+import (
+	"fmt"
+)
+
+type QuickQueue []int
+
+func (qq *QuickQueue) enQ(me int) {
+	*qq = append(*qq, me)
+}
+func (qq *QuickQueue) deQ() int {
+	var d = (*qq)[0]
+	*qq = (*qq)[1:]
+	return d
+}
+func (qq *QuickQueue) empty() bool {
+	return len(*qq) == 0
+}
 
 type QuickStack []int
 
@@ -90,6 +106,33 @@ func scramble(word string, bySlice []int) string {
 	}
 
 	return string(scram)
+}
+
+func PermutePlus(series []int) chan string {
+	var qq = QuickQueue(series)
+	var qs = make(QuickStack, 0, len(series))
+	var out = make(chan string)
+
+	go func() {
+		permutePlusHelper(&qq, &qs, out, len(series))
+		close(out)
+	}()
+
+	return out
+}
+
+func permutePlusHelper(qq *QuickQueue, qs *QuickStack, out chan string, level int) {
+
+	if qq.empty() {
+		out <- fmt.Sprint(CopyPermutation(qs))
+		return
+	}
+
+	for i := level; i > 0; i-- {
+		qs.Push(qq.deQ())
+		permutePlusHelper(qq, qs, out, level-1)
+		qq.enQ(qs.Pop())
+	}
 }
 
 // DigitModulo uses it's own sequence as the base for each digit,
