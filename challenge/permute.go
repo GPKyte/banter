@@ -202,7 +202,7 @@ func FactorialSequenceThing(n int) {
 }
 
 // main will test the build and traversal of the ordinal tree
-func main() {
+func ExamplePermute() {
 	var regularSequence = []int{0, 1, 2, 3, 4, 5, 6, 7}
 	var counter int = 0
 	var specialCounter DigitModulo = make([]int, len(regularSequence))
