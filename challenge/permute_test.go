@@ -13,9 +13,11 @@ func TestEfficientPermutation(t *testing.T) {
 	var bufferedOutput strings.Builder
 	var outstream chan string = challenge.PermutePlus(series)
 	var counter int = 0
+	var expectation = challenge.Factorial(len(series))
 	var bufferLimit = 1000
 
 	for permutation := range outstream {
+		expectation--
 		fmt.Fprintln(&bufferedOutput, permutation)
 
 		if counter >= bufferLimit {
@@ -24,7 +26,9 @@ func TestEfficientPermutation(t *testing.T) {
 			bufferedOutput.Reset()
 		}
 	}
-
+	if expectation != 0 {
+		t.Error("Wrong number of expected permutations generated.")
+	}
 	t.Log(bufferedOutput.String())
 	bufferedOutput.Reset()
 }
@@ -77,14 +81,14 @@ func sum(totalThis []int) int {
 	return total
 }
 func TestPermuteYieldsWrongNumbers(t *testing.T) {
-	var series = []int{1, 2, 3, 4, 5}
+	var series = []int{0, 1, 2, 3, 4, 5}
 	var seriesSum = sum(series)
 	var allOrderings = challenge.Permute(series)
 	var counter int = 0
 
 	for permutation, ok := <-allOrderings; ok; permutation, ok = <-allOrderings {
 		counter += 1
-
+		t.Logf("%3d: %2v", counter, permutation)
 		if sum(permutation) != seriesSum {
 			t.Logf("Permutation #%d is not an accurate permuation because the numbers differ from the series", counter)
 			t.Logf(" - Expected #%d to have the numbers %v, but had %v instead.", counter, series, permutation)
@@ -202,6 +206,10 @@ func TestModuloSliceInterpreter(t *testing.T) {
 		}
 	}
 
+}
+
+func TestExamplePermuteVisually(t *testing.T) {
+	challenge.ExamplePermute()
 }
 
 // Goal: Learn how to build operator support for specific type, or specific interface
