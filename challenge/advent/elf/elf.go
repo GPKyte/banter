@@ -60,6 +60,19 @@ func (e *Elves) Swap(i, j int) {
     (*e)[j] = holdme
 }
 
+func (e *Elves) TopThreeSnackContributors() *Elves {
+    sort.Sort(e)
+    topThree := (*e)[len(*e)-3:]
+    return &topThree
+}
+
+func (e *Elves) TotalCalorieCount() (total int) {
+    for _, elf := range *e {
+        total += elf.Pack.TotalCalories()
+    }
+    return total
+}
+
 // groupInventoryDescriptionsByElf to align with design of smaller units, e.g. food type
 // and to ease edge case of elf with empty inventory/no food
 func groupInventoryDescriptionsByElf(source io.Reader) []string {

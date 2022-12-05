@@ -5,6 +5,40 @@ import (
     "testing"
 )
 
+func TestFindAndSumTopThreeCalorieCarriers(t *testing.T) {
+    someElvesInventories := `1
+
+    2
+
+    3
+
+    4
+
+    5
+
+    6
+
+    7
+
+    8
+
+    9`
+    topThreeCalorieCounts := []int{9, 8, 7}
+    elves := New(strings.NewReader(someElvesInventories))
+    if want, got := elves.TopThreeSnackContributors().TotalCalorieCount(), sum(topThreeCalorieCounts);
+    want != got {
+        t.Logf("Expected to get %d, but got %d instead.", want, got)
+        t.Fail()
+    }
+}
+
+func sum(these []int) (total int) {
+    for _, num := range these {
+        total += num
+    }
+
+    return total
+}
 
 func TestDiscernMostCaloriesCarriedAmongElves(t *testing.T) {
     someElvesInventories := `1000
