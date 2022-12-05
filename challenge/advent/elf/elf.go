@@ -3,6 +3,7 @@ package elf
 
 import (
     "io"
+    "sort"
     "strings"
 
     "github.com/GPKyte/banter/challenge/advent/food"
@@ -43,6 +44,20 @@ func New(source io.Reader) *Elves {
     }
 
     return &elves
+}
+
+func (e *Elves) Len() int {
+    return len(*e)
+}
+
+func (e *Elves) Less(i, j int) bool {
+    return (*e)[i].Pack.TotalCalories() < (*e)[j].Pack.TotalCalories()
+}
+
+func (e *Elves) Swap(i, j int) {
+    holdme := (*e)[i]
+    (*e)[i] = (*e)[j]
+    (*e)[j] = holdme
 }
 
 // groupInventoryDescriptionsByElf to align with design of smaller units, e.g. food type
