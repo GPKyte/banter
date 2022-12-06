@@ -26,6 +26,9 @@ func main() {
     fmt.Printf(
         "The elf carrying the most food by calorie is packing a total of %d C, wow!\n",
         discernHighestCalorieCountAmongTheseElves(elves))
+    fmt.Printf(
+        "Three elves are sharing the most and are carrying a combined total of %d Calories.",
+        combinedCaloriesOfTopThreeContributors(elves))
 }
 
 func generateElvesFromFileReference(f string) *elf.Elves {
@@ -40,4 +43,8 @@ func generateElvesFromFileReference(f string) *elf.Elves {
 
 func discernHighestCalorieCountAmongTheseElves(elves *elf.Elves) int {
     return elves.MostCaloriesCarried()
+}
+
+func combinedCaloriesOfTopThreeContributors(elves *elf.Elves) int {
+    return elves.TopThreeSnackContributors().TotalCalorieCount()
 }

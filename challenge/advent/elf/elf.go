@@ -4,6 +4,7 @@ package elf
 import (
     "io"
     "sort"
+    "fmt"
     "strings"
 
     "github.com/GPKyte/banter/challenge/advent/food"
@@ -31,6 +32,10 @@ func (e *Elves) MostCaloriesCarried() int {
 
 type Elf struct {
     Pack *Inventory
+}
+
+func (e *Elf) String() string {
+    return fmt.Sprint(e.Pack.TotalCalories())
 }
 
 // New expedition of Elves based on a description of each elf, e.g. their inventory details
