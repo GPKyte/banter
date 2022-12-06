@@ -6,10 +6,11 @@ import (
 
 type Player struct {
     score int // non-negative
+    name string
 }
 
 func (p *Player) String() string {
-    return fmt.Sprint(p.Score())
+    return fmt.Sprint(p.name)
 }
 
 func (p *Player) RaiseScore(by int) {
