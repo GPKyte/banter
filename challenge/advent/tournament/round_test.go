@@ -15,6 +15,7 @@ B X
 C Z
 C X
 C Y`
+var gestures = []Gesture{Rock, Paper, Scissors}
 
 func TestRoundParsing(t *testing.T) {
     all := loadRounds(strings.NewReader(allRoundVariations))
@@ -28,6 +29,51 @@ func TestRoundParsing(t *testing.T) {
     }
     if strings.Contains(allAsString, "Z") {
         t.Fail()
+    }
+}
+
+func TestGestureResponses(t *testing.T) {
+    for _, g := range gestures {
+        notLosing := !g.Beats(LoseTo(g))
+        notWinning := !WinAgainst(g).Beats(g)
+        notDrawing := g != DrawWith(g)
+        atRightTime := false
+
+        if notLosing || notWinning || notDrawing || atRightTime {
+            t.Fail()
+        }
+        if notLosing {
+            t.Fail()
+            t.Logf("Incorrect Gesture given: %v does not lose to %v.", LoseTo(g), g)
+        }
+        if notWinning {
+            t.Fail()
+            t.Logf("Incorrect Gesture given: %v does not win against %v.", WinAgainst(g), g)
+        }
+        if notDrawing {
+            t.Logf("Incorrect Gesture given: %v does not draw with %v.", DrawWith(g), g)
+        }
+    }
+}
+
+func TestCorrectedRoundParsing(t *testing.T) {
+    all := correctlyLoadRounds(strings.NewReader(allRoundVariations))
+
+    pointsForAllGestures := Rock.points + Paper.points + Scissors.points
+    pointsForAllRoundOutcomes := PointsForLoss + PointsForTie + PointsForWin
+    totalPointsForAllGestureCombos := len(gestures) * (pointsForAllGestures + pointsForAllRoundOutcomes)
+
+    var atp int // Player a's total points
+    var ztp int // Player z's total points
+    for _, round := range *all {
+        atp += round.Outcome().a
+        ztp += round.Outcome().z
+    }
+    if atp != ztp || atp != totalPointsForAllGestureCombos {
+        t.Fail()
+        t.Logf("Total points was expected to be %d, Player a got %d points while Player z got %d points.",
+                totalPointsForAllGestureCombos, atp, ztp)
+        t.Log(*all)
     }
 }
 

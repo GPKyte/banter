@@ -94,7 +94,7 @@ func loadRounds(src io.Reader) *Rounds {
     var s scanner.Scanner
     s.Init(src)
 
-    var empty, abc, xyz string // abc will be read a loop prior to xyz by scanner    
+    var empty, abc, xyz string // abc will be read a loop prior to xyz by scanner
     for tok := s.Scan(); tok != scanner.EOF; tok = s.Scan() {
         if abc == empty {
             abc = s.TokenText()
@@ -110,4 +110,60 @@ func loadRounds(src io.Reader) *Rounds {
     }
 
     return &rnds
+}
+
+func correctlyLoadRounds(src io.Reader) *Rounds {
+    rnds := make(Rounds, 0)
+
+    var s scanner.Scanner
+    s.Init(src)
+
+    var empty, abc, xyz string // abc will be read a loop prior to xyz by scanner    
+    for tok := s.Scan(); tok != scanner.EOF; tok = s.Scan() {
+        if abc == empty {
+            abc = s.TokenText()
+            continue
+        }
+        xyz = s.TokenText()
+
+        ag := parseGesture(abc)
+        zg := prepareGestureResponse(ag, xyz)
+        rnds = append(rnds, Round{ag, zg})
+
+        xyz, abc = empty, empty
+    }
+
+    return &rnds
+}
+
+func LoseTo(g Gesture) Gesture {
+    losingGesture := map[Gesture]Gesture {
+        Rock: Scissors,
+        Paper: Rock,
+        Scissors: Paper,
+    }
+    return losingGesture[g]
+}
+
+func DrawWith(g Gesture) Gesture {
+    return g
+}
+
+func WinAgainst(g Gesture) Gesture {
+    for _, this := range []Gesture{Rock, Paper, Scissors} {
+        if this.Beats(g) {
+            return(this)
+        }
+    }
+    return NotA // To satisfy compiler, this is an error case to test for
+}
+
+func prepareGestureResponse(ag Gesture, desiredOutcome string) Gesture {
+    gestureToGet := map[string]func(g Gesture) Gesture {
+        "X": LoseTo,
+        "Y": DrawWith,
+        "Z": WinAgainst,
+    }
+
+    return gestureToGet[desiredOutcome](ag)
 }
