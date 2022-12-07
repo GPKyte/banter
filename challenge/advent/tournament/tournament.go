@@ -103,7 +103,7 @@ func New(from io.Reader) *Tournament {
     return &Tournament{
         ap: &Player{name: "Elfuli"},
         zp: &Player{name: "Elfammer"},
-        rounds: loadRounds(from),
+        rounds: correctlyLoadRounds(from),
         roundsPlayed: 0,
     }
 }
