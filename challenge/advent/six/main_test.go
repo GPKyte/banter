@@ -2,7 +2,7 @@ package main
 
 import (
     "testing"
-    "strings"
+    "os"
 )
 
 func TestIndexMarkers(t *testing.T) {
@@ -38,7 +38,7 @@ func TestIndexMarkers(t *testing.T) {
         t.Log(len(bySizeNine))
     }
 
-    if bySizeNine[0] != 24 {
+    if bySizeNine[0] != 25 {
         t.Fail()
         t.Log(bySizeNine[0])
     }
@@ -54,11 +54,40 @@ func TestPuzzleOneExamples(t *testing.T) {
     }
     for _, tc := range testcases {
         test := func(t *testing.T) {
-            ciphertext := LoadPuzzle(strings.NewReader(tc.gave))
+            from, _ := os.Open(tc.gave)
+            defer from.Close()
+            ciphertext := LoadPuzzle(from)
             indices := IndexMarkers(FirstMarkerSize, ciphertext)
             firstMarkerIndex := indices[0]
             if firstMarkerIndex != tc.want {
                 t.Fail()
+                t.Log(ciphertext)
+                t.Log(indices)
+            }
+        }
+        t.Run(tc.gave, test)
+    }
+}
+
+func TestPuzzleTwoExamples(t *testing.T) {
+    testfile := "testdata/example-" // prefix
+    testcases := []struct{gave string; want int}{
+        {gave: testfile+"00", want:23},
+        {gave: testfile+"01", want:23},
+        {gave: testfile+"02", want:29},
+        {gave: testfile+"03", want:26},
+        {gave: testfile+"04", want:19},
+    }
+    for _, tc := range testcases {
+        test := func(t *testing.T) {
+            from, _ := os.Open(tc.gave)
+            defer from.Close()
+            ciphertext := LoadPuzzle(from)
+            indices := IndexMarkers(MessageMarkerSize, ciphertext)
+            firstMarkerIndex := indices[0]
+            if firstMarkerIndex != tc.want {
+                t.Fail()
+                t.Log(ciphertext)
                 t.Log(indices)
             }
         }
@@ -82,7 +111,7 @@ func UnequalByteSlices(a, b []byte) bool {
     lengthMismatch = lena != len(b)
     
     for i := 0; !lengthMismatch && i < lena && !unequalElements; i++ {
-        unequalElements = a[i] == b[i]
+        unequalElements = a[i] != b[i]
     }
 
     return lengthMismatch || unequalElements
@@ -92,6 +121,6 @@ func TestMarkerValidation(t *testing.T) {
     is := "abcd"
     not := "abca"
 
-    if !ThisIsAMarker(FirstMarkerSize, is) {t.Fail()}
-    if ThisIsAMarker(FirstMarkerSize, not) {t.Fail()}
+    if !ThisIsAMarker(is) {t.Fail()}
+    if ThisIsAMarker(not) {t.Fail()}
 }
