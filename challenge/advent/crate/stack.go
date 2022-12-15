@@ -8,7 +8,11 @@ import (
     "strings"
     "strconv"
     "fmt"
+
+    "github.com/GPKyte/banter/challenge/advent/feature"
 )
+
+var MultiCrateTransfer = feature.New("Crates can be transferred as a stack while preserving their current order", feature.Disabled)
 
 type Stacks []*Stack
 type Stack struct {
@@ -219,24 +223,36 @@ func (s *Stack) PickUp() Crate {
 func (s *Stacks) Transfer(t Transfer) {
     src := s.Get(t.Source)
     dst := s.Get(t.Destination)
+    qty := t.Quantity
     var i int
     defer func(){
         if err := recover(); err != nil {
             panic(fmt.Errorf("%w\nEncountered during move %d, of %d for transfer %v", err, i, t.Quantity, t))
         }
     }()
-    for i = 0; i < t.Quantity; i++ {
-        src.transferCrate(dst)
+
+    if MultiCrateTransfer.Enabled() {
+        src.transferCrates(dst, qty)
+    } else {
+        for ;i < qty; i++ {
+            src.transferCrate(dst)
+        }
     }
 }
 
-func (s *Stack) transferCrate(to *Stack) {
+func (s *Stack) transferCrates(to *Stack, qty int) {
     defer func(){
         if err := recover(); err != nil {
             panic(fmt.Errorf("While transferring crate from stack %v to stack %v encountered error %w", s, to, err))
         }
     }()
-    to.Place(s.PickUp())
+    craneHoldover := s.crates[s.Height()-qty:] // Take 3 [a b c d e][5-3:] => [- - c d e]
+    s.crates = s.crates[:s.Height()-qty]
+    to.crates = append(to.crates, craneHoldover...)
+}
+
+func (s *Stack) transferCrate(to *Stack) {
+    s.transferCrates(to, 1)
 }
 
 func (s *Stack) Height() int {
@@ -273,9 +289,9 @@ func handlePanicFromTopOfEmptyStack() {
 }
 
 func (s *Stacks) Rearrange(byThese []Transfer) {
-    // doNotPauseAndLogEveryTransferOutcome := bool(false)
-    logEveryStep := bool(true)
-    s.rearrange(byThese, logEveryStep)
+    doNotPauseAndLogEveryTransferOutcome := bool(false)
+    // logEveryStep := bool(true)
+    s.rearrange(byThese, doNotPauseAndLogEveryTransferOutcome)
 }
 
 func (s *Stacks) rearrange(byThese []Transfer, stepwiseLoggingEnabled bool) {
@@ -302,7 +318,7 @@ func pauseForUser() {
     pause := true
     for pause {
         if s, _ := p.ReadString('\n'); s == "" {
-            pause == false
+            pause = false
         }
     }
 }

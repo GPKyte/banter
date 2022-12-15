@@ -14,7 +14,7 @@ func exampleHelper(t *testing.T, fn string) func(t *testing.T) {
         defer ex.Close()
 
         stacks, usingTransfers := LoadPuzzle(ex)
-        stacks.Rearrange(usingTransfers)
+        stacks.rearrange(usingTransfers, true)
         ex.Seek(int64(0), 0) // Reset reader
         expectedStacks := loadPuzzleAnswer(ex)
 
@@ -28,9 +28,21 @@ func exampleHelper(t *testing.T, fn string) func(t *testing.T) {
 }
 
 func TestPuzzleExample(t *testing.T) {
+
+    MultiCrateTransfer.Disable()
+
     for _, fn := range []string{
         "testdata/example-00.txt",
         "testdata/example-01.txt",
+    } {
+        t.Run(fn, exampleHelper(t, fn))
+    }
+
+    MultiCrateTransfer.Enable()
+
+    for _, fn := range []string{
+        "testdata/example-10.txt",
+        "testdata/example-11.txt",
     } {
         t.Run(fn, exampleHelper(t, fn))
     }
