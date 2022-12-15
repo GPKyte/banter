@@ -3,6 +3,8 @@ package elf
 import (
     "strings"
     "testing"
+
+    "github.com/GPKyte/banter/challenge/advent/sack"
 )
 
 func TestFindAndSumTopThreeCalorieCarriers(t *testing.T) {
@@ -86,5 +88,33 @@ func TestInputParsing(t *testing.T) {
     integerGroups := groupInventoryDescriptionsByElf(strings.NewReader(integersPerLineSeparatedByEmptyLine))
     for i, ig := range integerGroups {
         t.Logf("%d: %s\n", i, ig)
+    }
+}
+
+func TestFindingTeamBadge(t *testing.T) {
+    a := "QWERTYUI"
+    b := "IOPBASDF"
+    c := "FGHJKYUI"
+
+    threeElves := &Elves{
+        &Elf{
+            Pack: &Inventory{
+                Sack: sack.New(a),
+            },
+        },
+        &Elf{
+            Pack: &Inventory{
+                Sack: sack.New(b),
+            },
+        },
+        &Elf{
+            Pack: &Inventory{
+                Sack: sack.New(c),
+            },
+        },
+    }
+
+    if sack.GetItem("I") != threeElves.TeamBadge() {
+        t.Fail()
     }
 }

@@ -2,11 +2,13 @@ package elf
 
 import (
     "github.com/GPKyte/banter/challenge/advent/food"
+    "github.com/GPKyte/banter/challenge/advent/sack"
 )
 
 // Inventory is used to store, retrieve, and track or summarize information about collections of objects represented as data, e.g. food.
 type Inventory struct {
     Foods *food.FoodCollection
+    Sack *sack.Sack
 }
 
 // AddFood to Inventory's food category

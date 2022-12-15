@@ -8,6 +8,7 @@ import (
     "strings"
 
     "github.com/GPKyte/banter/challenge/advent/food"
+    "github.com/GPKyte/banter/challenge/advent/sack"
 )
 
 type Elves []*Elf
@@ -93,4 +94,32 @@ func readAll(ofThis io.Reader) string {
         all = append(all, b[0])
     }
     return string(all)
+}
+
+func EquipSacksOntoElvenGroupsOfSize(ofSize int, sacks *[]*sack.Sack) *[]Elves {
+    teams := make([]Elves, 0)
+    total := len(*sacks)
+    elves := make(Elves, total)
+    for i := range elves {
+        elves[i] = &Elf{Pack: &Inventory{Sack: (*sacks)[i]}}
+    }
+
+    for i := 0; i+ofSize <= total; i+=ofSize {
+        teams = append(teams, elves[i:i+ofSize])
+    }
+
+    if remainder := total % ofSize; remainder > 0 {
+        teams = append(teams, elves[total-remainder:])
+    }
+
+    return &teams
+}
+
+func (team *Elves) TeamBadge() sack.Item {
+    searchThese := make([]*sack.Sack, 0, len(*team))
+    for _, elf := range *team {
+        searchThese = append(searchThese, elf.Pack.Sack)
+    }
+
+    return sack.ItemCommonToAllSacks(searchThese)
 }
