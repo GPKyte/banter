@@ -9,6 +9,6 @@ func New(crate string) Crate {
 
 var NoCrate = Crate("")
 
-func (c Crate) DifferentThan(this Crate) bool {return true}
-func (c Crate) SameAs(this Crate) bool {return true}
+func (c Crate) DifferentThan(this Crate) bool {return c != this}
+func (c Crate) SameAs(this Crate) bool {return !c.DifferentThan(this)}
 func (c Crate) ShortString() string {return string(c[1:2])}
