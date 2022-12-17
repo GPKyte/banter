@@ -48,22 +48,22 @@ func TestFillNavigateAndPrintFileTree(t *testing.T) {
     // - /
     fs.TrackFile("b.txt", 14848514)
     fs.TrackFile("c.dat", 8504156)
-    fs.TrackDirectory("a")
-    fs.TrackDirectory("d")
-    fs.ChangeDirectory("a")
+    fs.TrackDir("a")
+    fs.TrackDir("d")
+    fs.ChangeDir("a")
     // - /a/
     fs.TrackFile("f", 29116)
     fs.TrackFile("g", 2557)
     fs.TrackFile("h.lst", 62596)
-    fs.TrackDirectory("e")
-    fs.ChangeDirectory("e")
+    fs.TrackDir("e")
+    fs.ChangeDir("e")
     // - /a/e/
     fs.TrackFile("i", 584)
-    fs.ChangeDirectory("..")
+    fs.ChangeDir("..")
     // - /a/
-    fs.ChangeDirectory("..")
+    fs.ChangeDir("..")
     // - /
-    fs.ChangeDirectory("d")
+    fs.ChangeDir("d")
     // - /d/
     fs.TrackFile("j", 4060174)
     fs.TrackFile("d.log", 8033020)
@@ -213,21 +213,21 @@ func TestDirectoryAwareness(t *testing.T) {
     fs := NewFileSystem()
     fs.TrackDir("one-a")
     fs.TrackDir("one-b")
-    fs.WorkingDir() == "/"
+    if fs.PresentWorkingDir() != "/" {t.Fail()}
     fs.ChangeDir("one-a")
-    fs.WorkingDir() == "one-a"
+    if fs.PresentWorkingDir() == "one-a" {t.Fail()}
     fs.TrackDir("two-aa")
-    fs.WorkingDir()
     fs.ChangeDir("two-aa")
-    fs.WorkingDir()
+    if fs.PresentWorkingDir() != "two-aa" {t.Fail()}
     fs.TrackDir("three-aaa")
     fs.ChangeDir("three-aaa")
-    fs.WorkingDir()
+    if fs.PresentWorkingDir() != "three-aaa" {t.Fail()}
     fs.ChangeDir("..")
-    fs.WorkingDir()
+    if fs.PresentWorkingDir() != "two-aa" {t.Fail()}
     fs.ChangeDir("..")
-    fs.WorkingDir()
+    if fs.PresentWorkingDir() != "one-a" {t.Fail()}
     fs.ChangeDir("/one-b")
-    fs.WorkingDir()
+    if fs.PresentWorkingDir() != "one-b" {t.Fail()}
     fs.ChangeDir("/")
+    if fs.PresentWorkingDir() != "/" {t.Fail()}
 }
