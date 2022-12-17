@@ -48,14 +48,14 @@ func modifyFileSystem(fs FileSystem, line string) {
 }
 
 const Threshold int = 100000 // KB
-func GetDirectoriesBelowThreshold(fs FileSystem) []Directory {
-    all := make([]Directory, 0)
-    gatherAllDirectories := func(d Directory) {
+func GetDirectoriesBelowThreshold(fs FileSystem) []*Directory {
+    all := make([]*Directory, 0)
+    gatherAllDirectories := func(d *Directory) {
         all = append(all, d)
     }
     fs.Root.DirectoryTraversal(gatherAllDirectories)
 
-    belowThresh := make([]Directory, 0, len(all))
+    belowThresh := make([]*Directory, 0, len(all))
     for _, d := range all {
         if s := d.Size(); s < Threshold {
             belowThresh = append(belowThresh, d)
@@ -65,7 +65,7 @@ func GetDirectoriesBelowThreshold(fs FileSystem) []Directory {
     return belowThresh
 }
 
-func (d Directory) DirectoryTraversal(doThisPerDir func(d Directory)) {
+func (d *Directory) DirectoryTraversal(doThisPerDir func(d *Directory)) {
     for _, please := range d.Dirs {
         // Because output standard and need for summing file sizes
         // Operate in depth-first strategy and execute funtion after recursion returns
@@ -74,7 +74,7 @@ func (d Directory) DirectoryTraversal(doThisPerDir func(d Directory)) {
     }
 }
 
-func TotalSizeOfDirectories(d []Directory) (total int) {
+func TotalSizeOfDirectories(d []*Directory) (total int) {
     for _, each := range d {
         total += each.Size()
     }
@@ -123,7 +123,7 @@ func NewFileSystem() FileSystem {
     return fs
 }
 type FileSystem struct {
-    Root Directory
+    Root *Directory
     WorkingDir Path
 }
 func (fs FileSystem) TrackDir(s string) {
@@ -226,28 +226,28 @@ func Filter(these []File, including func(f File) bool) []File {
 }
 
 
-func NewDirectory(name string) Directory {
-    return Directory{
+func NewDirectory(name string) *Directory {
+    return &Directory{
         Name: name,
-        Dirs: make([]Directory, 0),
+        Dirs: []*Directory{},
         Files: make([]File, 0),
     }
 }
 type Directory struct {
     Name string
-    Dirs []Directory
+    Dirs []*Directory
     Files []File
 }
-func (d Directory) IncludeFile(f File) {
+func (d *Directory) IncludeFile(f File) {
     d.Files = append(d.Files, f)
 }
-func (d Directory) String() string {
+func (d *Directory) String() string {
     return d.Name
 }
-func (d Directory) Size() int {
+func (d *Directory) Size() int {
     var total int
-    sizeme := func(d Directory) int {return sumOfFileSizes(d.Files)}
-    sizeus := func(d Directory) {total += sizeme(d)}
+    sizeme := func(d *Directory) int {return sumOfFileSizes(d.Files)}
+    sizeus := func(d *Directory) {total += sizeme(d)}
 
     d.DirectoryTraversal(sizeus)
     return total
@@ -273,7 +273,7 @@ func isCommand(s string) bool {
 }
 
 
-type Path []Directory
+type Path []*Directory
 
 func (p Path) String() string {
     dirNames := make([]string, 0, len(p))
@@ -302,7 +302,7 @@ func (p Path) Up() {
     }
 }
 
-func (p Path) Local() Directory {
+func (p Path) Local() *Directory {
     return p[len(p)-1]
 }
 

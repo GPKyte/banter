@@ -70,14 +70,13 @@ func TestFillNavigateAndPrintFileTree(t *testing.T) {
     fs.TrackFile("d.ext", 5626152)
     fs.TrackFile("k", 7214296)
 
-    fsa := FileSystem{
-        Root: Directory{
-            Name: "/",
-            Dirs: []Directory{
-                {
+    rootDir :=  Directory{
+            Name: "",
+            Dirs: []*Directory{
+                &Directory{
                     Name: "a",
-                    Dirs: []Directory{
-                        {
+                    Dirs: []*Directory{
+                        &Directory{
                             Name: "e",
                             Files: []File{
                                 {
@@ -102,7 +101,7 @@ func TestFillNavigateAndPrintFileTree(t *testing.T) {
                         },
                     },
                 },
-                {
+                &Directory{
                     Name: "d",
                     Files: []File{
                         {
@@ -134,7 +133,10 @@ func TestFillNavigateAndPrintFileTree(t *testing.T) {
                     Size: 8504156,
                 },
             },
-        },
+        }
+    fsa := FileSystem{
+        Root: &rootDir,
+        WorkingDir: Path{&rootDir},
     }
 
     if !cmp.Equal(fs, fsa) {
