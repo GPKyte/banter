@@ -77,11 +77,13 @@ func TestFillNavigateAndPrintFileTree(t *testing.T) {
                 {
                     Name: "a",
                     Dirs: []Directory{
-                        Name: "e",
-                        Files: []File{
-                            {
-                                Name: "i",
-                                Size: 584,
+                        {
+                            Name: "e",
+                            Files: []File{
+                                {
+                                    Name: "i",
+                                    Size: 584,
+                                },
                             },
                         },
                     },
@@ -101,7 +103,7 @@ func TestFillNavigateAndPrintFileTree(t *testing.T) {
                     },
                 },
                 {
-                    Name: "d"
+                    Name: "d",
                     Files: []File{
                         {
                             Name: "j",
@@ -114,6 +116,7 @@ func TestFillNavigateAndPrintFileTree(t *testing.T) {
                         {
                             Name: "d.ext",
                             Size: 5626152,
+                        },
                         {
                             Name: "k",
                             Size: 7214296,
@@ -131,12 +134,12 @@ func TestFillNavigateAndPrintFileTree(t *testing.T) {
                     Size: 8504156,
                 },
             },
-        }
+        },
     }
 
     if !cmp.Equal(fs, fsa) {
         t.Fail()
-        t.Log(cmp.Diff(fs, fsa)
+        t.Log(cmp.Diff(fs, fsa))
     }
 
     if !cmp.Equal(fs.String(), goal) {
@@ -151,9 +154,9 @@ func TestTotalOfFileSizesInDirectory(t *testing.T) {
     d.IncludeFile(NewFile("b", 20000))
     d.IncludeFile(NewFile("c", 300000))
     d.IncludeFile(NewFile("d", 4000000))
-    d.IncludeFile(NewFile("e", 50000000)))
+    d.IncludeFile(NewFile("e", 50000000))
 
-    d.Size() != 54321000 {
+    if d.Size() != 54321000 {
         t.Fail()
         t.Log(d.Size(), 54321000)
         t.Log(d.Files)
@@ -196,7 +199,7 @@ func TestCollectFilesUnderThreshold(t *testing.T) {
         },
     }
 
-    byThreshold := func(f File) bool {
+    byThreshold1000 := func(f File) bool {
         return f.Size < 1000
     }
 
