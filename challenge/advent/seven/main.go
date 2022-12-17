@@ -156,7 +156,13 @@ func (fs FileSystem) ApplyCommand(c Command) {
         break
     }
 }
+
+// String sorts files and dirs of filesystem by name
+// and opens subdirs to do the same immediately after their name
 func (fs FileSystem) String() string {
+    // Where each level is indented more as the nesting depth increases
+    // Where each file and directory appears in descending alphanumerical a-Z0-9 order
+    // Where each directory's files and subdirectories is found like the above, below the directory's own line
     level := 0
     holdme := fs.WorkingDir
     fs.WorkingDir.Reset()
@@ -177,21 +183,44 @@ func setPrefix(indent string, level int, marker string) string {
 }
 
 func (fs FileSystem) stringRecursion(level int) string {
-    prefix := setPrefix("  ", level, "- ")
-    buf := make([]string, 0)
+    buf := make([]string, 0) // Hold file and directory/ subdir strings to be joined
+    dirPrefix := setPrefix("  ", level, "- ") // tab in each subdir and give it a nice little dash line
+    filePrefix := setPrefix("  ", level+1, "- ") // tab in each subdir and give it a nice little dash line
 
-    for _, d := range fs.WorkingDir.Local().Dirs {
-        line := fmt.Sprintf("%s%s (dir)", prefix, d.Name)
-        buf = append(buf, line)
+    pwd := fs.WorkingDir.Local()
+    dirName := pwd.String()
+    if dirName == "" { dirName = "/" } // Naming the root dir "" has not always made sense
+    line := fmt.Sprintf("%s%s (dir)", dirPrefix, dirName)
+    buf = append(buf, line)
+
+    dirs := pwd.Dirs
+    dLess := func(i, j int) bool {return dirs[i].Name < dirs[j].Name}
+    sort.Slice(dirs, dLess)
+
+    files := pwd.Files
+    fLess := func(i, j int) bool {return files[i].Name < files[j].Name}
+    sort.Slice(files, fLess)
+
+    goDownSubdir := func(d *Directory) {
         fs.WorkingDir.Down(d.Name)
         buf = append(buf, fs.stringRecursion(level+1))
         fs.WorkingDir.Up()
     }
-    for _, f := range fs.WorkingDir.Local().Files {
-        line := fmt.Sprintf(
-            "%s%s (file, size=%d)",
-            prefix, f.Name, f.Size)
+    appendFiles := func(f File) {
+        line := fmt.Sprintf("%s%s (file, size=%d)", filePrefix, f.Name, f.Size)
         buf = append(buf, line)
+    }
+
+    // Merge Sort strategy to iterate over both slices at once
+    for di, fi := 0, 0; di < len(dirs) || fi < len(files); {
+        dirBeforeFile := fi >= len(files) || (di < len(dirs) && dirs[di].Name < files[fi].Name)
+        if dirBeforeFile {
+            goDownSubdir(dirs[di])
+            di++
+        } else {
+            appendFiles(files[fi])
+            fi++
+        }
     }
 
     return fmt.Sprint(strings.Join(buf, "\n"))
