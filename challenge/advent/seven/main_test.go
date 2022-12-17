@@ -1,6 +1,7 @@
 package main
 
 import (
+    "os"
     "testing"
 
     "github.com/google/go-cmp/cmp"
@@ -267,3 +268,13 @@ func TestPathUpAndDown(t *testing.T) {
     if pwd.Local().Name != "doc" {t.Fail(); t.Log(pwd)}
 }
 
+func TestExample00(t *testing.T) {
+    ex, _ := os.Open("testdata/example-00")
+    fs := RecordTerminalSession(ex)
+    t.Log(fs.String())
+    dirs := GetDirectoriesBelowThreshold(fs)
+    if len(dirs) != 2 {t.Fail(); t.Log(dirs)}
+    total := TotalSizeOfDirectories(dirs)
+
+    if total != 95437 {t.Fail(); t.Log(total)}
+}
