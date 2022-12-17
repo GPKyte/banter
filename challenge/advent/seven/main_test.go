@@ -237,3 +237,33 @@ func TestDirectoryAwareness(t *testing.T) {
     fs.ChangeDir("/")
     if pwd = fs.PresentWorkingDir(); pwd != "/" {t.Fail(); t.Log(pwd)}
 }
+
+func TestPathUpAndDown(t *testing.T) {
+    root := NewDirectory("")
+    docs := NewDirectory("doc")
+    year0 := NewDirectory("1982")
+    year1 := NewDirectory("1994")
+    year2 := NewDirectory("2001")
+    work := NewDirectory("work")
+
+    pwd := NewPath(root)
+    root.IncludeDir(docs)
+    docs.IncludeDir(year0)
+    docs.IncludeDir(year1)
+    docs.IncludeDir(year2)
+    year2.IncludeDir(work)
+
+    if len(docs.Dirs) != 3 {t.Fail(); t.Logf("docs dir has %d subdirs", len(docs.Dirs)); t.Log(docs)}
+    pwd.Down(docs.Name)
+    pwd.Down(year2.Name)
+    pwd.Down(work.Name)
+    if len(pwd) != 4 {t.Fail(); t.Log(len(pwd)); t.Log(pwd)}
+
+    if pwd.Local().Name != "work" {t.Fail(); t.Log(pwd)}
+    pwd.Up()
+    pwd.Up()
+    if pwd.Local().Name != "doc" {t.Fail(); t.Log(pwd)}
+    pwd.Down("NotFound")
+    if pwd.Local().Name != "doc" {t.Fail(); t.Log(pwd)}
+}
+
