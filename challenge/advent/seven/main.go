@@ -252,6 +252,7 @@ func (d *Directory) Size() int {
     sizeme := func(d *Directory) int {return sumOfFileSizes(d.Files)}
     sizeus := func(d *Directory) {total += sizeme(d)}
 
+    total += sizeme(d)
     d.DirectoryTraversal(sizeus)
     return total
 }
