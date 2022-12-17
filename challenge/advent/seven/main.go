@@ -89,8 +89,9 @@ var (
 )
 func NewCommand(s string) Command {
     tokens := strings.Split(s, " ")
+    // [$, c, a...]
     n := tokens[1]
-    a := tokens[1:]
+    a := tokens[2:]
     return Command{
         Name: n,
         Args: a,

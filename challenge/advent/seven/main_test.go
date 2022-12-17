@@ -10,11 +10,11 @@ import (
 func TestInterpretCommand(t *testing.T) {
     o := "$ cd e"
     cd := NewCommand(o)
-    if cd.Args[0] != "e" {t.Fail()}
+    if cd.Args[0] != "e" {t.Fail(); t.Log(cd)}
 
     w := "$ ls"
     ls := NewCommand(w)
-    if len(ls.Args) != 0 {t.Fail()}
+    if len(ls.Args) != 0 {t.Fail(); t.Log(ls)}
 }
 
 func TestInterpetCommandOutput(t* testing.T) {
