@@ -1,3 +1,5 @@
+package main
+
 import (
     "testing"
 
@@ -7,24 +9,23 @@ import (
 func TestInterpretCommand(t *testing.T) {
     o := "$ cd e"
     cd := NewCommand(o)
-    cd.Args()[0] == "e"
+    if cd.Args[0] != "e" {t.Fail()}
 
     w := "$ ls"
     ls := NewCommand(w)
-    len(ls.Args()) == 0
+    if len(ls.Args) != 0 {t.Fail()}
 }
 
 func TestInterpetCommandOutput(t* testing.T) {
     da := "dir a"
     fb := "14848514 b.txt"
-    fc := "8504156 c.dat"
     dd := "dir d"
 
-    ls := ListStuff
-    isFile(fb)
-    NewFile(fc)
-    isDirectory(da)
-    NewDirectory(dd)
+
+    if !isFile(fb) {t.Fail()}
+    t.Log(NewFile("c.dat", 8504156).String())
+    if !isDirectory(da) {t.Fail()}
+    t.Log(NewDirectory(dd).String())
 }
 
 func TestFillNavigateAndPrintFileTree(t *testing.T) {
