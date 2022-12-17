@@ -105,7 +105,6 @@ func Which(c Command) Command {
 func NewFileSystem() FileSystem {
     rt := NewDirectory("")
     wd := NewPath(rt)
-    wd = append(wd, rt)
 
     fs := FileSystem{
         Root: rt,
