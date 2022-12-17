@@ -7,9 +7,21 @@ import(
     "fmt"
     "bufio"
     "strings"
+    "sort"
 )
 
-func main() {}
+func main() {
+    storageSpace := SolvePuzzle("resources/log")
+    Logger.Printf("Can free up %d storage space.\n", storageSpace)
+}
+
+func SolvePuzzle(inFileName string) int {
+    log, _ := os.Open(inFileName)
+    fs := RecordTerminalSession(log)
+    Logger.Printf("\n%s\n", fs.String())
+    dirs := GetDirectoriesBelowThreshold(fs)
+    return TotalSizeOfDirectories(dirs)
+}
 
 var Debug = log.New(os.Stderr, "[DEBUG]: ", 0)
 var Logger = log.New(os.Stdout, "", 0)
@@ -43,7 +55,7 @@ func modifyFileSystem(fs FileSystem, line string) {
         fs.TrackDir(n)
 
     } else {
-        log.Printf("Could not parse line\n...%s\n", line)
+        Debug.Printf("Could not parse line\n...%s\n", line)
     }
 }
 
@@ -210,7 +222,7 @@ func (fs FileSystem) stringRecursion(level int) string {
         line := fmt.Sprintf("%s%s (file, size=%d)", filePrefix, f.Name, f.Size)
         buf = append(buf, line)
     }
-
+    
     // Merge Sort strategy to iterate over both slices at once
     for di, fi := 0, 0; di < len(dirs) || fi < len(files); {
         dirBeforeFile := fi >= len(files) || (di < len(dirs) && dirs[di].Name < files[fi].Name)
