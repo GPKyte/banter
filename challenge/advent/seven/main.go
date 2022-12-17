@@ -148,7 +148,11 @@ func (fs FileSystem) ChangeDir(s string) {
     }
 }
 func (fs FileSystem) PresentWorkingDir() string {
-    return fs.WorkingDir.Local().Name
+    pwd := fs.WorkingDir.String()
+    if len(pwd) == 0 {
+        pwd += "/"
+    }
+    return pwd
 }
 func (fs FileSystem) ApplyCommand(c Command) {
     switch c.Name {
@@ -276,13 +280,17 @@ func isCommand(s string) bool {
     return s[:len("$")] == "$"
 }
 
-
+func NewPath(d *Directory) Path {
+    p := make(Path, 0)
+    p = append(p, d)
+    return p
+}
 type Path []*Directory
 
 func (p Path) String() string {
     dirNames := make([]string, 0, len(p))
     for _, d := range p {
-        dirNames = append(dirNames, d.Name)
+        dirNames = append(dirNames, d.String())
     }
     return strings.Join(dirNames, "/")
 }
