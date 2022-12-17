@@ -316,33 +316,33 @@ func NewPath(d *Directory) *Path {
 type Path []*Directory
 
 func (p *Path) String() string {
-    dirNames := make([]string, 0, len(p))
-    for _, d := range p {
+    dirNames := make([]string, 0, len(*p))
+    for _, d := range *p {
         dirNames = append(dirNames, d.String())
     }
     return strings.Join(dirNames, "/")
 }
 
 func (p *Path) Reset() {
-    p = p[:1] // Keep Root
+    *p = (*p)[:1] // Keep Root
 }
 
 func (p *Path) Down(dn string) {
     for _, dirInPwd := range p.Local().Dirs {
         dirExistsLocally := dirInPwd.Name == dn
         if dirExistsLocally {
-            p = append(p, dirInPwd)
+            *p = append(*p, dirInPwd)
         }
     }
 }
 
 func (p *Path) Up() {
-    if len(p) >= 1 {
-        p = p[:len(p)-1]
+    if len(*p) >= 1 {
+        (*p) = (*p)[:len(*p)-1]
     }
 }
 
 func (p *Path) Local() *Directory {
-    return p[len(p)-1]
+    return (*p)[len(*p)-1]
 }
 
