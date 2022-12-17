@@ -218,21 +218,22 @@ func TestDirectoryAwareness(t *testing.T) {
     fs := NewFileSystem()
     fs.TrackDir("one-a")
     fs.TrackDir("one-b")
-    if fs.PresentWorkingDir() != "/" {t.Fail()}
+    var pwd string
+    if pwd = fs.PresentWorkingDir(); pwd != "" {t.Fail(); t.Log(pwd)}
     fs.ChangeDir("one-a")
-    if fs.PresentWorkingDir() == "one-a" {t.Fail()}
+    if pwd = fs.PresentWorkingDir(); pwd != "one-a" {t.Fail(); t.Log(pwd)}
     fs.TrackDir("two-aa")
     fs.ChangeDir("two-aa")
-    if fs.PresentWorkingDir() != "two-aa" {t.Fail()}
+    if pwd = fs.PresentWorkingDir(); pwd != "two-aa" {t.Fail(); t.Log(pwd)}
     fs.TrackDir("three-aaa")
     fs.ChangeDir("three-aaa")
-    if fs.PresentWorkingDir() != "three-aaa" {t.Fail()}
+    if pwd = fs.PresentWorkingDir(); pwd != "three-aaa" {t.Fail(); t.Log(pwd)}
     fs.ChangeDir("..")
-    if fs.PresentWorkingDir() != "two-aa" {t.Fail()}
+    if pwd = fs.PresentWorkingDir(); pwd != "two-aa" {t.Fail(); t.Log(pwd)}
     fs.ChangeDir("..")
-    if fs.PresentWorkingDir() != "one-a" {t.Fail()}
+    if pwd = fs.PresentWorkingDir(); pwd != "one-a" {t.Fail(); t.Log(pwd)}
     fs.ChangeDir("/one-b")
-    if fs.PresentWorkingDir() != "one-b" {t.Fail()}
+    if pwd = fs.PresentWorkingDir(); pwd != "one-b" {t.Fail(); t.Log(pwd)}
     fs.ChangeDir("/")
-    if fs.PresentWorkingDir() != "/" {t.Fail()}
+    if pwd = fs.PresentWorkingDir(); pwd != "/" {t.Fail(); t.Log(pwd)}
 }
