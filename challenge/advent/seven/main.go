@@ -65,15 +65,6 @@ func GetDirectoriesBelowThreshold(fs FileSystem) []*Directory {
     return belowThresh
 }
 
-func (d *Directory) DirectoryTraversal(doThisPerDir func(d *Directory)) {
-    for _, please := range d.Dirs {
-        // Because output standard and need for summing file sizes
-        // Operate in depth-first strategy and execute funtion after recursion returns
-        please.DirectoryTraversal(doThisPerDir)
-        doThisPerDir(please)
-    }
-}
-
 func TotalSizeOfDirectories(d []*Directory) (total int) {
     for _, each := range d {
         total += each.Size()
@@ -251,6 +242,14 @@ func (d *Directory) IncludeFile(f File) {
 }
 func (d *Directory) String() string {
     return d.Name
+}
+func (d *Directory) DirectoryTraversal(doThisPerDir func(d *Directory)) {
+    for _, please := range d.Dirs {
+        // Because output standard and need for summing file sizes
+        // Operate in depth-first strategy and execute funtion after recursion returns
+        please.DirectoryTraversal(doThisPerDir)
+        doThisPerDir(please)
+    }
 }
 func (d *Directory) Size() int {
     var total int
