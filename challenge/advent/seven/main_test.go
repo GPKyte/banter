@@ -136,7 +136,7 @@ func TestFillNavigateAndPrintFileTree(t *testing.T) {
         }
     fsa := FileSystem{
         Root: &rootDir,
-        WorkingDir: Path{&rootDir},
+        WorkingDir: &Path{&rootDir},
     }
 
     if !cmp.Equal(fs, fsa) {

@@ -112,7 +112,7 @@ func Which(c Command) Command {
 
 func NewFileSystem() FileSystem {
     rt := NewDirectory("")
-    wd := make(Path, 0)
+    wd := NewPath(rt)
     wd = append(wd, rt)
 
     fs := FileSystem{
@@ -124,7 +124,7 @@ func NewFileSystem() FileSystem {
 }
 type FileSystem struct {
     Root *Directory
-    WorkingDir Path
+    WorkingDir *Path
 }
 func (fs FileSystem) TrackDir(s string) {
     wd := fs.WorkingDir.Local()
@@ -280,14 +280,14 @@ func isCommand(s string) bool {
     return s[:len("$")] == "$"
 }
 
-func NewPath(d *Directory) Path {
+func NewPath(d *Directory) *Path {
     p := make(Path, 0)
     p = append(p, d)
-    return p
+    return &p
 }
 type Path []*Directory
 
-func (p Path) String() string {
+func (p *Path) String() string {
     dirNames := make([]string, 0, len(p))
     for _, d := range p {
         dirNames = append(dirNames, d.String())
@@ -295,11 +295,11 @@ func (p Path) String() string {
     return strings.Join(dirNames, "/")
 }
 
-func (p Path) Reset() {
+func (p *Path) Reset() {
     p = p[:1] // Keep Root
 }
 
-func (p Path) Down(dn string) {
+func (p *Path) Down(dn string) {
     for _, dirInPwd := range p.Local().Dirs {
         dirExistsLocally := dirInPwd.Name == dn
         if dirExistsLocally {
@@ -308,13 +308,13 @@ func (p Path) Down(dn string) {
     }
 }
 
-func (p Path) Up() {
+func (p *Path) Up() {
     if len(p) >= 1 {
         p = p[:len(p)-1]
     }
 }
 
-func (p Path) Local() *Directory {
+func (p *Path) Local() *Directory {
     return p[len(p)-1]
 }
 
