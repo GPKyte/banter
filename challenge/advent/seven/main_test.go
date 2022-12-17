@@ -40,9 +40,9 @@ func TestFillNavigateAndPrintFileTree(t *testing.T) {
   - b.txt (file, size=14848514)
   - c.dat (file, size=8504156)
   - d (dir)
-    - j (file, size=4060174)
-    - d.log (file, size=8033020)
     - d.ext (file, size=5626152)
+    - d.log (file, size=8033020)
+    - j (file, size=4060174)
     - k (file, size=7214296)`
 
     fs := NewFileSystem()
@@ -70,6 +70,8 @@ func TestFillNavigateAndPrintFileTree(t *testing.T) {
     fs.TrackFile("d.log", 8033020)
     fs.TrackFile("d.ext", 5626152)
     fs.TrackFile("k", 7214296)
+    fs.ChangeDir("..")
+    // - /
 
     rootDir :=  Directory{
             Name: "",
@@ -79,6 +81,7 @@ func TestFillNavigateAndPrintFileTree(t *testing.T) {
                     Dirs: []*Directory{
                         &Directory{
                             Name: "e",
+                            Dirs: []*Directory{},
                             Files: []File{
                                 {
                                     Name: "i",
@@ -104,6 +107,7 @@ func TestFillNavigateAndPrintFileTree(t *testing.T) {
                 },
                 &Directory{
                     Name: "d",
+                    Dirs: []*Directory{},
                     Files: []File{
                         {
                             Name: "j",
@@ -147,6 +151,7 @@ func TestFillNavigateAndPrintFileTree(t *testing.T) {
 
     if !cmp.Equal(fs.String(), goal) {
         t.Fail()
+        t.Log(fs.String())
         t.Log(cmp.Diff(fs.String(), goal))
     }
 }
@@ -220,21 +225,21 @@ func TestDirectoryAwareness(t *testing.T) {
     fs.TrackDir("one-a")
     fs.TrackDir("one-b")
     var pwd string
-    if pwd = fs.PresentWorkingDir(); pwd != "" {t.Fail(); t.Log(pwd)}
+    if pwd = fs.PresentWorkingDir(); pwd != "/" {t.Fail(); t.Log(pwd)}
     fs.ChangeDir("one-a")
-    if pwd = fs.PresentWorkingDir(); pwd != "one-a" {t.Fail(); t.Log(pwd)}
+    if pwd = fs.PresentWorkingDir(); pwd != "/one-a" {t.Fail(); t.Log(pwd)}
     fs.TrackDir("two-aa")
     fs.ChangeDir("two-aa")
-    if pwd = fs.PresentWorkingDir(); pwd != "two-aa" {t.Fail(); t.Log(pwd)}
+    if pwd = fs.PresentWorkingDir(); pwd != "/one-a/two-aa" {t.Fail(); t.Log(pwd)}
     fs.TrackDir("three-aaa")
     fs.ChangeDir("three-aaa")
-    if pwd = fs.PresentWorkingDir(); pwd != "three-aaa" {t.Fail(); t.Log(pwd)}
+    if pwd = fs.PresentWorkingDir(); pwd != "/one-a/two-aa/three-aaa" {t.Fail(); t.Log(pwd)}
     fs.ChangeDir("..")
-    if pwd = fs.PresentWorkingDir(); pwd != "two-aa" {t.Fail(); t.Log(pwd)}
+    if pwd = fs.PresentWorkingDir(); pwd != "/one-a/two-aa" {t.Fail(); t.Log(pwd)}
     fs.ChangeDir("..")
-    if pwd = fs.PresentWorkingDir(); pwd != "one-a" {t.Fail(); t.Log(pwd)}
+    if pwd = fs.PresentWorkingDir(); pwd != "/one-a" {t.Fail(); t.Log(pwd)}
     fs.ChangeDir("/one-b")
-    if pwd = fs.PresentWorkingDir(); pwd != "one-b" {t.Fail(); t.Log(pwd)}
+    if pwd = fs.PresentWorkingDir(); pwd != "/one-b" {t.Fail(); t.Log(pwd)}
     fs.ChangeDir("/")
     if pwd = fs.PresentWorkingDir(); pwd != "/" {t.Fail(); t.Log(pwd)}
 }
@@ -258,7 +263,7 @@ func TestPathUpAndDown(t *testing.T) {
     pwd.Down(docs.Name)
     pwd.Down(year2.Name)
     pwd.Down(work.Name)
-    if len(pwd) != 4 {t.Fail(); t.Log(len(pwd)); t.Log(pwd)}
+    if len(*pwd) != 4 {t.Fail(); t.Log(len(*pwd)); t.Log(pwd)}
 
     if pwd.Local().Name != "work" {t.Fail(); t.Log(pwd)}
     pwd.Up()
