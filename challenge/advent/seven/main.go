@@ -127,12 +127,12 @@ type FileSystem struct {
     WorkingDir Path
 }
 func (fs FileSystem) TrackDir(s string) {
-    wd := fs.WorkingDir[len(fs.WorkingDir)-1]
-    wd.Dirs = append(wd.Dirs, NewDirectory(s))
+    wd := fs.WorkingDir.Local()
+    wd.IncludeDir(NewDirectory(s))
 }
 func (fs FileSystem) TrackFile(s string, size int) {
-    wd := fs.WorkingDir[len(fs.WorkingDir)-1]
-    wd.Files = append(wd.Files, NewFile(s, size))
+    wd := fs.WorkingDir.Local()
+    wd.IncludeFile(NewFile(s, size))
 }
 func (fs FileSystem) ChangeDir(s string) {
     if s[0] == '/' {
@@ -229,7 +229,7 @@ func Filter(these []File, including func(f File) bool) []File {
 func NewDirectory(name string) *Directory {
     return &Directory{
         Name: name,
-        Dirs: []*Directory{},
+        Dirs: make([]*Directory, 0),
         Files: make([]File, 0),
     }
 }
@@ -237,6 +237,9 @@ type Directory struct {
     Name string
     Dirs []*Directory
     Files []File
+}
+func (d *Directory) IncludeDir(dir *Directory) {
+    d.Dirs = append(d.Dirs, dir)
 }
 func (d *Directory) IncludeFile(f File) {
     d.Files = append(d.Files, f)
