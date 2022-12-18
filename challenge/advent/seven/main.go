@@ -11,16 +11,29 @@ import(
 )
 
 func main() {
-    storageSpace := SolvePuzzle("resources/log")
-    Logger.Printf("Can free up %d storage space.\n", storageSpace)
+    SmallestDirBigEnoughToMatter := SolvePuzzleTwo("resources/log")
+    storageSpace := SmallestDirBigEnoughToMatter.Size()
+    Logger.Printf("Can free up %d storage space by deleting %s.\n", storageSpace, SmallestDirBigEnoughToMatter)
 }
 
-func SolvePuzzle(inFileName string) int {
+func SolvePuzzleOne(inFileName string) int {
     log, _ := os.Open(inFileName)
+    defer log.Close()
+
     fs := RecordTerminalSession(log)
-    Logger.Printf("\n%s\n", fs.String())
     dirs := GetDirectoriesBelowThreshold(fs)
     return TotalSizeOfDirectories(dirs)
+}
+
+func SolvePuzzleTwo(inFileName string) *Directory {
+    log, _ := os.Open(inFileName)
+    defer log.Close()
+
+    fs := RecordTerminalSession(log)
+    dir := GetSmallestDirectoryToMeetStorageRequirement(fs)
+
+    return fs.Root
+    return dir
 }
 
 var Debug = log.New(os.Stderr, "[DEBUG]: ", 0)
@@ -366,3 +379,17 @@ func (p *Path) Local() *Directory {
     return (*p)[len(*p)-1]
 }
 
+func GetSmallestDirectoryToMeetStorageRequirement(fs FileSystem) *Directory {
+    initialStorage := 70000000
+    storageAvailable := initialStorage - fs.Root.Size()
+    storageRequirement := 30000000
+    storageDifference := storageRequirement - storageAvailable
+
+    dirs := make([]*Directory, 0)
+    collectCandidates := func(d *Directory) {if d.Size() > storageDifference {dirs = append(dirs, d)}}
+    fs.Root.DirectoryTraversal(collectCandidates)
+    chooseSmallestOf := func (dirs []*Directory) *Directory { s := dirs[0]; for _, d := range dirs { if d.Size() < s.Size() { s = d; } }; return s; }
+    smallestBigDir := chooseSmallestOf(dirs)
+
+    return smallestBigDir
+}
