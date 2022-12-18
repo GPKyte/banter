@@ -273,6 +273,7 @@ type Directory struct {
     Name string
     Dirs []*Directory
     Files []File
+    SizeCache int
 }
 func (d *Directory) IncludeDir(dir *Directory) {
     d.Dirs = append(d.Dirs, dir)
@@ -292,12 +293,19 @@ func (d *Directory) DirectoryTraversal(doThisPerDir func(d *Directory)) {
     }
 }
 func (d *Directory) Size() int {
+    // Shortcut
+    if d.SizeCache > 0 {
+        return d.SizeCache
+    }
+
     var total int
     sizeme := func(d *Directory) int {return sumOfFileSizes(d.Files)}
     sizeus := func(d *Directory) {total += sizeme(d)}
 
     total += sizeme(d)
     d.DirectoryTraversal(sizeus)
+
+    d.SizeCache = total
     return total
 }
 func sumOfFileSizes(files []File) int {
