@@ -1,5 +1,9 @@
 package treehouse
 
+import (
+    "fmt"
+)
+
 func NewTree(height int) *Tree {
     return &Tree{
         Height: height,
@@ -26,6 +30,8 @@ func Height(t *Tree) int {
 
     return height
 }
+
+func (t *Tree) String() string {return fmt.Sprint(t.Height)}
 
 func (t *Tree) Status() TreeStatus {
     ts := t.Surroundings
@@ -74,10 +80,10 @@ type LinesOfSight struct {
     West  LineOfSight
 }
 
-// Notice whether the given tree is taller than the known tallest tree
-// And if it is taller, it becomes the new tallest tree.
+// Notice whether the given tree, t, is taller than the current tallest tree nin line of sight, los
 func (los *LineOfSight) Notice(t *Tree) {
     if tt := los.TallestTree; tt == nil || t != nil && t.Height > tt.Height {
         los.TallestTree = t
     }
 }
+
