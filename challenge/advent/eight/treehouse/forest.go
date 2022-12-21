@@ -15,6 +15,7 @@ var Debug *log.Logger = log.New(os.Stderr, "[DEBUG]: ", 0)
 func NewForest(fromInput io.Reader) *Forest {
     f := Forest{
         Trees: make([][]*Tree, 0),
+        ScenicScores: make([][]int, 0),
     }
     transformTextIntoTreesWithinForest := func(text string) {
         moreTrees := make([]*Tree, 0)
@@ -48,6 +49,7 @@ func ScanEachLine(ofThis io.Reader, andDoThat func(this string)) {
 
 type Forest struct {
     Trees [][]*Tree
+    ScenicScores [][]int
 }
 
 func (f *Forest) showVisibility() string {
@@ -93,7 +95,7 @@ func (f *Forest) show(this *[]string, via func(t *Tree)) string {
     return strings.Join(rows, "\n")
 }
 
-func (f *Forest) String() string {return f.showHeights()}
+func (f *Forest) String() string {return f.showVisibility()}
 
 // Any tree taller than the path of its neighbors from the left, right, top, or bottom until the respective border is considered visible
 // Any tree which has a taller tree between itself and the forest border in every direction is considered hidden
@@ -179,4 +181,87 @@ func (f *Forest) InspectFromTheOutside() {
             neighbor = current
         }
     }
+
+    //
+}
+func (f *Forest) MeasureScene(x, y int) (n, e, s, w int) {
+    // Include all shorter trees up till the edge,
+    // Include the first tree that is >= height, and none beyond it
+    centerTree := f.Trees[x][y]
+
+    northEdge := 0
+    eastEdge := 0
+    southEdge := len(f.Trees) - 1
+    westEdge := len(f.Trees[northEdge]) - 1
+    inScene := func(ns, ew int) bool {
+        outsideForestEdges := ns < northEdge || ns > southEdge || ew < eastEdge || ew > westEdge
+        return !outsideForestEdges
+    }
+    viewBlocked := func(ns, ew int) bool {
+        return f.Trees[ns][ew].Height >= centerTree.Height
+    }
+
+    for northbound := x-1; inScene(northbound, y); northbound-- {
+        n += 1
+
+        if viewBlocked(northbound, y) {
+            break
+        }
+    }
+    for eastbound := y-1; inScene(x, eastbound); eastbound-- {
+        e += 1
+
+        if viewBlocked(x, eastbound) {
+            break
+        }
+    }
+    for southbound := x+1; inScene(southbound, y); southbound++ {
+        s += 1
+
+        if viewBlocked(southbound, y) {
+            break
+        }
+    }
+    for westbound := y+1; inScene(x, westbound); westbound++ {
+        w += 1
+
+        if viewBlocked(x, westbound) {
+            break
+        }
+    }
+
+    return n, e, s, w
+}
+
+func (f *Forest) CalculateScenicScores() {
+    for northToSouth := range f.Trees {
+        f.ScenicScores = append(f.ScenicScores, make([]int, len(f.Trees[northToSouth])))
+
+        for eastToWest := range f.Trees[northToSouth] {
+            f.ScenicScores[northToSouth][eastToWest] = product(f.MeasureScene(northToSouth, eastToWest))
+        }
+    }
+}
+func (f *Forest) FindMostScenicTreeScore() int {
+    var most int
+    f.CalculateScenicScores()
+
+    for northToSouth := range f.Trees {
+        for eastToWest := range f.Trees[northToSouth] {
+            ss := f.ScenicScores[northToSouth][eastToWest]
+            if most < ss {
+                most = ss
+            }
+        }
+    }
+
+    return most
+}
+
+func product(of ...int) int {
+    prod := 1
+    for _, all := range of {
+        prod *= all
+    }
+    return prod
 }
