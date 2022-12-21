@@ -15,4 +15,5 @@ func main() {
 
     fmt.Println(forest)
     fmt.Println(forest.CountVisible())
+    fmt.Println(forest.FindMostScenicTreeScore())
 }
