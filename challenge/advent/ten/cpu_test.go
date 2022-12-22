@@ -19,10 +19,12 @@ func TestExamples(t *testing.T) {
             cpu := New()
             instructionSet := Load(f)
             cpu.Execute(instructionSet)
-            total := sum(cpu.RegisterValueDuringCyclesOfInterest())
+            sss := cpu.SignalStrengthDuring(ClockCyclesOfInterest)
+            total := sum(sss)
             if total != tcs.want {
                 t.Fail()
                 t.Log(total)
+                t.Log(sss)
             }
         }
         t.Run(tcs.filename, test)
