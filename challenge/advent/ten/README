@@ -1,0 +1,18 @@
+Day ten
+https://adventofcode.com/2022/day/10
+
+Emulate a CPU Clock and Arithmetic Unit
+At certain clock cycles calculate some value
+Return the sum of all these values.
+
+The instruction set includes
+addx int    two clock cycles
+noop        one clock cycle
+
+--[19th]-[20th]-[21st]--------------
+--[noop]-[   addx    ]---------------
+In the case that the clock cycle of interest, e.g. 20th cycle, occurs in middle of addx operation, include that addx result in the next cycle, e.g. the 21st or 40th but not the 20th.
+
+"Maybe you can learn something by looking at the value of the X register throughout execution."
+
+
