@@ -10,7 +10,7 @@ func main() {
     instructionFile := common.OpenFirstArgAsFileReader()
     defer instructionFile.Close()
 
-    fmt.Println(solvePuzzle(instructionFile))
+    fmt.Println(solvePuzzleTwo(instructionFile))
 }
 
 func solvePuzzle(from io.Reader) int {
@@ -20,4 +20,12 @@ func solvePuzzle(from io.Reader) int {
     cpu.Execute(ops)
     sss := cpu.SignalStrengthDuring(ClockCyclesOfInterest)
     return sum(sss)
+}
+
+func solvePuzzleTwo(from io.Reader) string {
+    ops := Load(from)
+
+    cpu := New()
+    cpu.Execute(ops)
+    return cpu.String()
 }

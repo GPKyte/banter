@@ -1,6 +1,7 @@
 package main
 
 import (
+    "strings"
     "strconv"
     "io"
     "bufio"
@@ -11,19 +12,39 @@ func New() *CPU {
         X: 1,
         Clock: 0,
         XHistory: make([]int, 0),
+        Display: make([]byte, 0),
     }}
 type CPU struct {
     X int // register value
     Clock int
     XHistory []int
+    Display []byte
 }
 var ClockCyclesOfInterest = []int {
     20, 60, 100, 140, 180, 220,
 }
+const displayWidth int = 40
 
 func (c *CPU) Cycle() {
     c.Clock++
     c.XHistory = append(c.XHistory, c.X)
+    c.PrintCharToDisplay()
+}
+
+func (c *CPU) PrintCharToDisplay() {
+    var char byte
+
+    start := c.X % displayWidth - 1
+    end := c.X % displayWidth + 1
+    position := (c.Clock - 1) % displayWidth
+
+    if position >= start && position <= end {
+        char = '#'
+    } else {
+        char = '.'
+    }
+
+    c.Display = append(c.Display, char)
 }
 
 func (c *CPU) Execute(ops Operations) {
@@ -89,4 +110,14 @@ func Load(from io.Reader) Operations {
         ops = append(ops, op)
     }
     return ops
+}
+
+func (c *CPU) String() string {
+    lines := make([]string, 0)
+    for start, end := 0, displayWidth; end < len(c.Display); start += displayWidth {
+        end = start + displayWidth
+
+        lines = append(lines, string(c.Display[start:end]))
+    }
+    return strings.Join(lines, "\n")
 }
