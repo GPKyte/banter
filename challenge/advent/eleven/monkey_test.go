@@ -63,3 +63,18 @@ func TestOperationTokenParsing(t *testing.T) {
     }
 }
 
+func TestChoiceUsage(t *testing.T) {
+    zed := Monkey{Decide: func() string {return "0"}}
+    choose1or3ifdiv13 := NewChoice(parseChoice(`  Test: divisible by 13
+    If true: throw to monkey 1
+    If false: throw to monkey 3`))
+
+    trinity := Monkey{Decide: choose1or3ifdiv13}
+
+    if zed.Decide() != "0" {t.Fail()}
+    if trinity.Decide() != "3" {t.Fail()}
+    reset := WorryLevel
+    WorryLevel = 39
+    if trinity.Decide() != "1" {t.Fail()}
+    WorryLevel = reset
+}

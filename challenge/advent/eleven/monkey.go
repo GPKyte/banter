@@ -20,10 +20,46 @@ type Monkeys struct {
     Group []*Monkey
 }
 
-type Operation func()
-type Choice func() *Monkey
+type Choice func() string
+func NewChoice(test func() bool, monkeyIdIfTestPasses, monkeyIdIfTestFails string) Choice {
+    return func() string {
+        if test() {
+            return monkeyIdIfTestPasses
+        } else {
+            return monkeyIdIfTestFails
+        }
+    }
+}
+func parseChoice(from string) (func() bool, string, string) {
+    // Given three lines, first is test, second is when true, third when false
+    lines := strings.Split(from, "\n")
+    if len(lines) != 3 {
+        panic("Can not parse Choice from "+from)
+    }
+    first := lines[0]
+    testdescription := strings.Trim(first[strings.Index(first, ":") + 1:], " ") // "..." from "  Test: ..."
+    testparts := strings.Split(testdescription, " ")
+    if testparts[0] != "divisible" {
+        panic("Can only test divisibility. But this test description says: "+testdescription)
+    }
+    test := func() bool {
+        divisor, err := strconv.Atoi(testparts[len(testparts)-1])
+        if err != nil {
+            panic(err)
+        }
+        return WorryLevel % divisor == 0
+    }
+
+    second := lines[1]
+    ifTrueLabel := second[strings.IndexAny(second, "0123456789"):]
+    third := lines[2]
+    ifFalseLabel := third[strings.IndexAny(third, "0123456789"):]
+
+    return test, ifTrueLabel, ifFalseLabel
+}
 
 var WorryLevel int = 1
+type Operation func()
 func NewOperation(from string) Operation {
     // Operation: var = Expression
     // Expression: var | var Operator Expression
