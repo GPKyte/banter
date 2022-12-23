@@ -1,12 +1,73 @@
 package monkey
 
 import (
+    "fmt"
     "io"
+    "bufio"
+    "errors"
     "strings"
     "strconv"
 )
 
-func New(from io.Reader) *Monkeys {return nil}
+func New(from io.Reader) *Monkeys {
+    group := make([]*Monkey, 0)
+    all := Monkeys {}
+    s := bufio.NewScanner(from)
+
+    for ok := true; ok; ok = s.Scan() {
+        nextMonkey := parseOneMonkey(s)
+        nextMonkey.Group = &all
+        group = append(group, nextMonkey)
+    }
+
+    all.Group = group
+    return &all
+}
+
+// parseOneMonkey by scanning through 6 input lines
+// Starting at the label line, ending at the ifFalse line
+// Expecting empty new line in the next scan
+func parseOneMonkey(via *bufio.Scanner) *Monkey {
+    var ok bool = true
+    ok = via.Scan()
+    labelLine := via.Text()
+    label := labelLine[len("Monkey "):strings.Index(labelLine, ":")]
+    ok = via.Scan()
+    itemsLine := via.Text()
+    itemsLine = itemsLine[strings.Index(itemsLine, ":")+1:]
+    itemsLine = strings.Trim(itemsLine, " ")
+    itemsLine = strings.Replace(itemsLine, ",", "", -1)
+    items := make(Items, 0)
+    for _, itemstr := range strings.Split(itemsLine, " ") {
+        itemnum, err := strconv.Atoi(itemstr)
+        if err != nil {
+            panic(err)
+        }
+        items = append(items, Item(itemnum))
+    }
+    ok = via.Scan()
+    opText := via.Text()
+    opText = opText[strings.Index(opText, ":")+1:]
+    op := NewOperation(opText)
+    ok = via.Scan()
+    choiceText := via.Text()
+    ok = via.Scan()
+    choiceText += "\n" + via.Text()
+    ok = via.Scan()
+    choiceText += "\n" + via.Text()
+    choice := NewChoice(parseChoice(choiceText))
+
+    if !ok {
+        return nil
+    }
+    return &Monkey{
+        ID: label,
+        Has: items,
+        HandleItems: op,
+        Decide: choice,
+    }
+}
+
 
 type Monkey struct {
     ID string
@@ -18,6 +79,15 @@ type Monkey struct {
 
 type Monkeys struct {
     Group []*Monkey
+}
+
+func (m *Monkeys) Target(id string) (*Monkey, error) {
+    for _, monk := range (*m).Group {
+        if monk.ID == id {
+            return monk, nil
+        }
+    }
+    return nil, errors.New("No monkey was targetted by id "+id)
 }
 
 type Choice func() string
@@ -70,7 +140,7 @@ func NewOperation(from string) Operation {
 
     operands, err := chooseOperands(tokens[2], tokens[4])
     if err != nil {
-        panic(err)
+        panic(fmt.Errorf("%w Caused by line '%s'", err, from))
     }
     operator  := chooseOperator(tokens[3]) // + * / -
 

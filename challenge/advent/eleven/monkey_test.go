@@ -1,6 +1,7 @@
 package monkey
 
 import (
+    "os"
     "testing"
 
     "github.com/google/go-cmp/cmp"
@@ -78,3 +79,34 @@ func TestChoiceUsage(t *testing.T) {
     if trinity.Decide() != "1" {t.Fail()}
     WorryLevel = reset
 }
+
+func TestMakingMonkies(t *testing.T) {
+    exf, err := os.Open("example-00")
+    if err != nil {
+        t.Fatal("Could not open example file", err)
+    }
+    defer exf.Close()
+
+    defer func() {
+        if r := recover(); r != nil {
+            t.Fatal(r)
+        }
+    }()
+    ms := New(exf)
+    if len(ms.Group) != 4 {
+        t.Fail()
+        t.Log(ms.Group)
+    }
+
+    mtwo, err := ms.Target("2")
+    if err != nil {
+        t.Fail()
+        t.Log(ms.Group)
+        t.Log(err)
+    }
+    if !cmp.Equal(mtwo.Has, Items{79, 60, 97}) {
+        t.Fail()
+        t.Log(mtwo)
+    }
+}
+
