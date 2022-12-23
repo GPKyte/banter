@@ -110,3 +110,33 @@ func TestMakingMonkies(t *testing.T) {
     }
 }
 
+func TestRoundOne(t *testing.T) {
+    exf, err := os.Open("example-00")
+    if err != nil {
+        t.Fatal("Could not open example file", err)
+    }
+    defer exf.Close()
+
+    defer func() {
+        if r := recover(); r != nil {
+            t.Fatal(r)
+        }
+    }()
+    ms := New(exf)
+
+    WorryLevel = 1
+    ms.GoARound()
+    if WorryLevel <= 1 {
+        t.Fail()
+    }
+
+    mone, err := ms.Target("1")
+    if err != nil {
+        t.Fatal(err)
+    }
+    if !cmp.Equal(mone.Has, Items{74, 79, 98, 79, 60, 97, 54, 65, 75, 74}) {
+        t.Fail()
+        t.Log(mone)
+    }
+}
+

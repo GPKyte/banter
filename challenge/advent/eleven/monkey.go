@@ -201,3 +201,15 @@ func (m *Monkey) TossAllTo(that *Monkey) {
 type Items []Item
 type Item int
 
+func (ms *Monkeys) GoARound() {
+    // In the initial order:
+    for _, m := range ms.Group {
+        t, _ := ms.Target(m.Decide())
+        m.HandleItems()
+        if Config.Verbose {
+            showProgress := "% 9d: Monkey d%s tossing items %v to Monkey %s (%v...)\n"
+            fmt.Printf(showProgress, WorryLevel, m.ID, m.Has, t.ID, t.Has)
+        }
+        m.TossAllTo(t)
+    }
+}
