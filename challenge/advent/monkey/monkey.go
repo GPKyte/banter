@@ -4,6 +4,7 @@ import (
     "os"
     "log"
     "fmt"
+    "sort"
     "io"
     "bufio"
     "errors"
@@ -104,6 +105,7 @@ type Monkey struct {
     HandleItem Operation
     Decide Choice
     Group *Monkeys
+    ItemsInspected int
 }
 
 type Monkeys struct {
@@ -231,6 +233,8 @@ func (m *Monkey) TossTo(that *Monkey) {
 }
 
 func (m *Monkey) Inspect(i *Item) {
+    m.ItemsInspected++
+
     // original value heightens when handled and reduces to a third afterwards
     orig := int(*i)
     m.HandleItem(i)
@@ -287,5 +291,16 @@ func (ms *Monkeys) TotalWorryLevel() int {
         }
     }
     return total
+}
+
+func (ms *Monkeys) MonkeyBusiness() int {
+    less := func(i, j int) bool {
+        return ms.Group[i].ItemsInspected < ms.Group[j].ItemsInspected
+    }
+    sort.Slice(ms.Group, less)
+
+    most := ms.Group[len(ms.Group)-1]
+    secondMost := ms.Group[len(ms.Group)-2]
+    return most.ItemsInspected * secondMost.ItemsInspected
 }
 

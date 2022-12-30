@@ -23,6 +23,6 @@ func SolvePartOne(puzzle io.Reader) int {
     for i := 0; i < rounds; i++ {
         ms.GoARound()
     }
-    return ms.TotalWorryLevel()
+    return ms.MonkeyBusiness()
 }
 
