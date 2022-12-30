@@ -9,6 +9,20 @@ import (
     "strconv"
 )
 
+type Configuration struct {
+    Verbose bool
+    Debug   bool
+    Version string
+}
+
+var Config = Configuration{
+    Verbose:    false,
+    Debug:      false,
+    Version:    VersAlpha,
+}
+
+var VersAlpha = "0.1.0"
+
 func New(from io.Reader) *Monkeys {
     group := make([]*Monkey, 0)
     all := Monkeys {}
@@ -63,7 +77,7 @@ func parseOneMonkey(via *bufio.Scanner) *Monkey {
     return &Monkey{
         ID: label,
         Has: items,
-        HandleItems: op,
+        HandleItem: op,
         Decide: choice,
     }
 }
@@ -72,7 +86,7 @@ func parseOneMonkey(via *bufio.Scanner) *Monkey {
 type Monkey struct {
     ID string
     Has Items
-    HandleItems Operation
+    HandleItem Operation
     Decide Choice
     Group *Monkeys
 }
@@ -90,17 +104,17 @@ func (m *Monkeys) Target(id string) (*Monkey, error) {
     return nil, errors.New("No monkey was targetted by id "+id)
 }
 
-type Choice func() string
-func NewChoice(test func() bool, monkeyIdIfTestPasses, monkeyIdIfTestFails string) Choice {
-    return func() string {
-        if test() {
+type Choice func(int) string
+func NewChoice(test func(int) bool, monkeyIdIfTestPasses, monkeyIdIfTestFails string) Choice {
+    return func(this int) string {
+        if test(this) {
             return monkeyIdIfTestPasses
         } else {
             return monkeyIdIfTestFails
         }
     }
 }
-func parseChoice(from string) (func() bool, string, string) {
+func parseChoice(from string) (func(int) bool, string, string) {
     // Given three lines, first is test, second is when true, third when false
     lines := strings.Split(from, "\n")
     if len(lines) != 3 {
@@ -112,12 +126,12 @@ func parseChoice(from string) (func() bool, string, string) {
     if testparts[0] != "divisible" {
         panic("Can only test divisibility. But this test description says: "+testdescription)
     }
-    test := func() bool {
+    test := func(worryLevel int) bool {
         divisor, err := strconv.Atoi(testparts[len(testparts)-1])
         if err != nil {
             panic(err)
         }
-        return WorryLevel % divisor == 0
+        return worryLevel % divisor == 0
     }
 
     second := lines[1]
@@ -129,28 +143,28 @@ func parseChoice(from string) (func() bool, string, string) {
 }
 
 var WorryLevel int = 1
-type Operation func()
+type Operation func(*Item)
 func NewOperation(from string) Operation {
     // Operation: var = Expression
     // Expression: var | var Operator Expression
-    // Two vars are recognized, old, new
-    // new and old are both &WorryLevel, just at different times
+    // Two vars are recognized, old, new yet both pull from the same place
     // Operators include + and *, but could include /, -, or others
     var tokens []string = parseOperationTokens(from)
 
-    operands, err := chooseOperands(tokens[2], tokens[4])
-    if err != nil {
-        panic(fmt.Errorf("%w Caused by line '%s'", err, from))
-    }
-    operator  := chooseOperator(tokens[3]) // + * / -
 
-    operation := func() {
-        WorryLevel = operator(*operands[0], *operands[1])
+    operation := func(i *Item) {
+        operator  := chooseOperator(tokens[3]) // + * / -
+        operands, err := chooseOperands(i, tokens[2], tokens[4])
+        if err != nil {
+            panic(fmt.Errorf("%w Caused by line '%s'", err, from))
+        }
+
+        *i = Item(operator(*operands[0], *operands[1]) / 3)
     }
     return operation
 }
 
-func chooseOperands(from ...string) ([]*int, error) {
+func chooseOperands(itemRef *Item, from ...string) ([]*int, error) {
     ops := make([]*int, 0)
 
     for _, label := range from {
@@ -158,9 +172,9 @@ func chooseOperands(from ...string) ([]*int, error) {
 
         switch label {
         case "new":
-            o = &WorryLevel
+            o = (*int)(itemRef)
         case "old":
-            o = &WorryLevel
+            o = (*int)(itemRef)
         default:
             num, err := strconv.Atoi(label)
             if err != nil {
@@ -198,18 +212,29 @@ func (m *Monkey) TossAllTo(that *Monkey) {
     m.Has = m.Has[:0] // Nothing
 }
 
+func (m *Monkey) TossTo(that *Monkey) {
+    that.Has = append(that.Has, m.Has[0])
+    m.Has = m.Has[1:]
+}
+
+func (m *Monkey) TossItems() {
+    for len(m.Has) > 0 {
+        item := &m.Has[0]
+        m.HandleItem(item)
+        receiver, err := m.Group.Target(m.Decide(int(*item)))
+        if err != nil {
+            panic(err)
+        }
+        m.TossTo(receiver)
+    }
+}
+
 type Items []Item
 type Item int
 
 func (ms *Monkeys) GoARound() {
     // In the initial order:
     for _, m := range ms.Group {
-        t, _ := ms.Target(m.Decide())
-        m.HandleItems()
-        if Config.Verbose {
-            showProgress := "% 9d: Monkey d%s tossing items %v to Monkey %s (%v...)\n"
-            fmt.Printf(showProgress, WorryLevel, m.ID, m.Has, t.ID, t.Has)
-        }
-        m.TossAllTo(t)
+        m.TossItems()
     }
 }
