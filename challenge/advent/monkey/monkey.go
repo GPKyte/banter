@@ -1,6 +1,8 @@
 package monkey
 
 import (
+    "os"
+    "log"
     "fmt"
     "io"
     "bufio"
@@ -8,6 +10,8 @@ import (
     "strings"
     "strconv"
 )
+
+var Verbose = log.New(os.Stdout, "Monkey Business: ", 0)
 
 type Configuration struct {
     Verbose bool
@@ -27,9 +31,17 @@ func New(from io.Reader) *Monkeys {
     group := make([]*Monkey, 0)
     all := Monkeys {}
     s := bufio.NewScanner(from)
+    defer func() {
+        if r := recover(); r != nil {
+            panic(fmt.Errorf("%w\nGroup so far is: %v\n", r, group))
+        }
+    }()
 
     for ok := true; ok; ok = s.Scan() {
         nextMonkey := parseOneMonkey(s)
+        if nextMonkey == nil {
+            continue
+        }
         nextMonkey.Group = &all
         group = append(group, nextMonkey)
     }
@@ -45,6 +57,9 @@ func parseOneMonkey(via *bufio.Scanner) *Monkey {
     var ok bool = true
     ok = via.Scan()
     labelLine := via.Text()
+    if !strings.Contains(labelLine, ":") {
+        return nil
+    }
     label := labelLine[len("Monkey "):strings.Index(labelLine, ":")]
     ok = via.Scan()
     itemsLine := via.Text()
@@ -216,15 +231,24 @@ func (m *Monkey) TossTo(that *Monkey) {
 }
 
 func (m *Monkey) Inspect(i *Item) {
+    // original value heightens when handled and reduces to a third afterwards
+    orig := int(*i)
     m.HandleItem(i)
+    heightened := int(*i)
     *i = Item(int(*i) / 3)
+    reduced := int(*i)
+
+    verbosePrintf("\t\tMonkey %s began inspecting item at %d, and it reached %d.\n", m.ID, orig, heightened)
+    verbosePrintf("\t\tThey moved on and now the item is at %d.\n", reduced)
 }
 
 func (m *Monkey) TossItems() {
+    verbosePrintf("\tMonkey %s is tossing items %v now.", m.ID, m.Has) 
     for len(m.Has) > 0 {
-        item := &m.Has[0]
-        m.Inspect(item)
-        receiver, err := m.Group.Target(m.Decide(int(*item)))
+        itemRef := &m.Has[0]
+        m.Inspect(itemRef)
+        receiver, err := m.Group.Target(m.Decide(int(*itemRef)))
+        verbosePrintf("\t\tMonkey %s tossed an item at %d to monkey %s\n", m.ID, *itemRef, receiver.ID)
         if err != nil {
             panic(err)
         }
@@ -234,10 +258,34 @@ func (m *Monkey) TossItems() {
 
 type Items []Item
 type Item int
+var rounds int
+
+func verbosePrintf(format string, args ...interface{}) {
+    if Config.Verbose {
+        Verbose.Printf(format, args...)
+    }
+
+}
 
 func (ms *Monkeys) GoARound() {
     // In the initial order:
+    roundId := rounds + 1
+    verbosePrintf("Begin Round %d\n", roundId)
+
     for _, m := range ms.Group {
         m.TossItems()
     }
+
+    rounds++
 }
+
+func (ms *Monkeys) TotalWorryLevel() int {
+    total := 0
+    for _, m := range ms.Group {
+        for _, i := range m.Has {
+            total += int(i)
+        }
+    }
+    return total
+}
+

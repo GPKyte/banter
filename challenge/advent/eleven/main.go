@@ -17,6 +17,7 @@ func main() {
 }
 
 func SolvePartOne(puzzle io.Reader) int {
+    monkey.Config.Verbose = true
     ms := monkey.New(puzzle)
     rounds := 20
     for i := 0; i < rounds; i++ {
