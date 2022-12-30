@@ -75,8 +75,8 @@ func TestChoiceUsage(t *testing.T) {
 
     divable := 39
     if zed.Decide(divable) != "0" {t.Fail()}
-    if trinity.Decide(divable) != "3" {t.Fail()}
-    if trinity.Decide(divable+1) != "1" {t.Fail()}
+    if trinity.Decide(divable) != "1" {t.Fail()}
+    if trinity.Decide(divable+1) != "3" {t.Fail()}
 }
 
 func TestMakingMonkies(t *testing.T) {
@@ -132,7 +132,7 @@ func TestRoundOne(t *testing.T) {
     if err != nil {
         t.Fatal(err)
     }
-    if !cmp.Equal(mzed.Has, Items{0, 23, 27, 26}) {
+    if !cmp.Equal(mzed.Has, Items{20, 23, 27, 26}) {
         t.Fail()
         t.Log(mzed)
     }

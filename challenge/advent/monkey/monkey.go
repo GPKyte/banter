@@ -142,7 +142,6 @@ func parseChoice(from string) (func(int) bool, string, string) {
     return test, ifTrueLabel, ifFalseLabel
 }
 
-var WorryLevel int = 1
 type Operation func(*Item)
 func NewOperation(from string) Operation {
     // Operation: var = Expression
@@ -151,7 +150,6 @@ func NewOperation(from string) Operation {
     // Operators include + and *, but could include /, -, or others
     var tokens []string = parseOperationTokens(from)
 
-
     operation := func(i *Item) {
         operator  := chooseOperator(tokens[3]) // + * / -
         operands, err := chooseOperands(i, tokens[2], tokens[4])
@@ -159,7 +157,7 @@ func NewOperation(from string) Operation {
             panic(fmt.Errorf("%w Caused by line '%s'", err, from))
         }
 
-        *i = Item(operator(*operands[0], *operands[1]) / 3)
+        *i = Item(operator(*operands[0], *operands[1]))
     }
     return operation
 }
@@ -217,10 +215,15 @@ func (m *Monkey) TossTo(that *Monkey) {
     m.Has = m.Has[1:]
 }
 
+func (m *Monkey) Inspect(i *Item) {
+    m.HandleItem(i)
+    *i = Item(int(*i) / 3)
+}
+
 func (m *Monkey) TossItems() {
     for len(m.Has) > 0 {
         item := &m.Has[0]
-        m.HandleItem(item)
+        m.Inspect(item)
         receiver, err := m.Group.Target(m.Decide(int(*item)))
         if err != nil {
             panic(err)
