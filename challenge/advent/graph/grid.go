@@ -134,3 +134,7 @@ func (pt *PathTree) At(a Coordinate) *PathNode {return nil}
 func Overlay(g *Grid, pt *PathNode) {
 
 }
+
+func (pt *PathTree) TracePath(c Coordinate) (trace []Coordinate) {
+    return trace
+}
