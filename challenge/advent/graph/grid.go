@@ -115,3 +115,22 @@ func (g *Grid) XBound() int {
 func (g *Grid) YBound() int {
     return len(g.self)
 }
+
+func (gn *GridNode) Visit() {
+    gn.Visited = true
+}
+
+type PathTree struct {
+    Links [][][]Coordinate
+}
+
+func NewPathTree(g *Grid) *PathTree {
+    return nil
+}
+
+func (pt *PathTree) Link(a, b Coordinate) {}
+func (pt *PathTree) At(a Coordinate) *PathNode {return nil}
+
+func Overlay(g *Grid, pt *PathNode) {
+
+}
