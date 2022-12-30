@@ -10,7 +10,7 @@ func main() {}
 
 func SolvePartOne(from io.Reader) int {
     G := graph.NewGrid(from)
-    Q := make(CoordinateQueue, 0) // for Breadth First Search
+    Q := NewCoordinateQueue() // for Breadth First Search
     pathTree := graph.NewPathTree(G)
 
     neighbors := func(c graph.Coordinate) []graph.Coordinate {
@@ -62,13 +62,20 @@ func LabelToHeight(s string) int {
 }
 
 type CoordinateQueue []graph.Coordinate
+func NewCoordinateQueue() *CoordinateQueue {
+    q := make(CoordinateQueue, 0)
+    return &q
+}
+func (cq *CoordinateQueue) Len() int {
+    return len(*cq)
+}
 func (cq *CoordinateQueue) NQ(c graph.Coordinate) {}
-func (cq *CoordinateQueue) DQ() (graph.Coordinate, bool) {
+func (cq *CoordinateQueue) DQ() (c graph.Coordinate, ok bool) {
     if len(*cq) == 0 {
         return graph.Coordinate{}, false
     }
 
-    c := (*cq)[0]
+    c = (*cq)[0]
     *cq = (*cq)[1:]
     return c, true
 }
