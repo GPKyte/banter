@@ -1,0 +1,26 @@
+https://adventofcode.com/2022/day/9
+
+Will model the movement of a rope onto a grid.
+At the end will determine where the tail of the rope has landed.
+
+The head of the rope moves Up, down, left, right
+The tail of the rope remains still, or moves Up, down, left, right or diagonally up or down and left or right
+The tail movement is a stepwise choice towards the closest radial point next to the rope.
+The tail can be under the head.
+
+The input determines the direction and distance of rope movement
+To move the rope once in a direction
+Determine whether the tail is in the (up to) nine grid spaces.
+If so move the head and not the tail
+If not, the tail will assume the heads position as the head assumes the next position.
+
+The grid is in a good place to recall and present the positions visited by the tail, and to record the position of the two rope ends.
+A string method on the rope may be unuseful here,
+But a variety of string methods may be useful in development of the grid
+
+The grid will maintain data about the history of the rope tail's positions
+The grid will maintain the head and tail positions of the rope
+The grid will display the entire bounds of the grid with the above data distinguished.
+
+The movements of the rope must be parsed from IO in their shortform.
+The grid will implement methods for moving the rope head and tail aligned with the input options.
